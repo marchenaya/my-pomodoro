@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">My Pomodoro</string>
+    <string name="settings">Settings</string>
+    <string name="timer">Timer</string>
+    <string name="work">Work</string>
+    <string name="short_break">Short Break</string>
+    <string name="long_break">Long Break</string>
+    <string name="start">Start</string>
+    <string name="pause">Pause</string>
+    <string name="reset">Reset</string>
+    <string name="select_settings_to_view_more">Select Settings to view more</string>
+    <string name="session_durations">Session Durations</string>
+    <string name="work_duration">Work Duration</string>
+    <string name="short_break_duration">Short Break Duration</string>
+    <string name="long_break_duration">Long Break Duration</string>
+    <string name="sessions_before_long_break">Sessions before Long Break</string>
+    <string name="sessions_count_format">%d sessions</string>
+    <string name="min_format">%d min</string>
+    <string name="about">About</string>
+    <string name="about_description">Customize your productivity flow by adjusting the session durations above. Your changes are saved automatically.</string>
+    <string name="timer_progress_channel_name">Timer Progress</string>
+    <string name="timer_progress_channel_description">Ongoing timer countdown</string>
+    <string name="timer_alerts_channel_name">Timer Alerts</string>
+    <string name="timer_alerts_channel_description">Notifications for Pomodoro timer completion</string>
+    <string name="work_complete_msg">Work session complete! Time for a break.</string>
+    <string name="short_break_complete_msg">Short break finished! Ready to focus?</string>
+    <string name="long_break_complete_msg">Long break finished! Ready to focus?</string>
+    <string name="session_finished_format">%s finished!</string>
+    <string name="next_step">Next Step</string>
+    <string name="remaining_time_format">%02d:%02d remaining</string>
+</resources>
