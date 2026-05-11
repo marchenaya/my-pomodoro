@@ -11,12 +11,16 @@ import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.GetTimerStateUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveTimerStateUseCase
 import com.marchenaya.mypomodoro.service.TimerService
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -33,14 +37,17 @@ class TimerViewModel(
     private val _events = Channel<TimerEvent>()
     val events = _events.receiveAsFlow()
 
+    private var countdownJob: Job? = null
+
     init {
-        viewModelScope.launch {
-            combine(
-                getTimerStateUseCase(),
-                getSettingsUseCase.workDuration,
-                getSettingsUseCase.shortBreakDuration,
-                getSettingsUseCase.longBreakDuration
-            ) { savedState, work, short, long ->
+        getTimerStateUseCase()
+            .combine(getSettingsUseCase.workDuration) { state, work -> Pair(state, work) }
+            .combine(getSettingsUseCase.shortBreakDuration) { pair, short -> Triple(pair.first, pair.second, short) }
+            .combine(getSettingsUseCase.longBreakDuration) { triple, long ->
+                val savedState = triple.first
+                val work = triple.second
+                val short = triple.third
+                
                 if (savedState.timerState == TimerState.IDLE) {
                     val duration = when (savedState.sessionType) {
                         SessionType.WORK -> work
@@ -54,14 +61,37 @@ class TimerViewModel(
                 } else {
                     savedState
                 }
-            }.collect { state ->
+            }
+            .onEach { state ->
                 _uiState.value = TimerUiState(
                     sessionType = state.sessionType,
                     timerState = state.timerState,
-                    remainingSeconds = state.remainingSeconds,
+                    remainingSeconds = if (state.timerState == TimerState.RUNNING) {
+                        ((state.endTime - System.currentTimeMillis()) / 1000).toInt().coerceAtLeast(0)
+                    } else {
+                        state.remainingSeconds
+                    },
                     totalSeconds = state.totalSeconds,
                     completedWorkSessions = state.completedWorkSessions
                 )
+                
+                if (state.timerState == TimerState.RUNNING) {
+                    startUiCountdown(state.endTime)
+                } else {
+                    countdownJob?.cancel()
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    private fun startUiCountdown(endTime: Long) {
+        countdownJob?.cancel()
+        countdownJob = viewModelScope.launch {
+            while (true) {
+                val remaining = ((endTime - System.currentTimeMillis()) / 1000).toInt().coerceAtLeast(0)
+                _uiState.value = _uiState.value.copy(remainingSeconds = remaining)
+                if (remaining <= 0) break
+                delay(500)
             }
         }
     }
@@ -92,7 +122,7 @@ class TimerViewModel(
         val endTime = System.currentTimeMillis() + (newRemaining * 1000L)
 
         saveState(endTime)
-        startService(TimerService.ACTION_START, newRemaining)
+        startService(TimerService.ACTION_START, newRemaining, endTime)
     }
 
     private fun pauseTimer() {
@@ -151,11 +181,14 @@ class TimerViewModel(
         }
     }
 
-    private fun startService(action: String, remainingSeconds: Int = -1) {
+    private fun startService(action: String, remainingSeconds: Int = -1, endTime: Long = -1L) {
         val intent = Intent(context, TimerService::class.java).apply {
             this.action = action
             if (remainingSeconds != -1) {
                 putExtra(TimerService.EXTRA_REMAINING_SECONDS, remainingSeconds)
+            }
+            if (endTime != -1L) {
+                putExtra(TimerService.EXTRA_END_TIME, endTime)
             }
         }
         if (action == TimerService.ACTION_START || action == TimerService.ACTION_NEXT_STEP) {

@@ -1,5 +1,6 @@
 package com.marchenaya.mypomodoro.service
 
+import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -12,12 +13,12 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.marchenaya.mypomodoro.MainActivity
 import com.marchenaya.mypomodoro.R
+import com.marchenaya.mypomodoro.domain.model.SessionType
+import com.marchenaya.mypomodoro.domain.model.TimerState
 import com.marchenaya.mypomodoro.domain.repository.PersistentTimerState
 import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.GetTimerStateUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveTimerStateUseCase
-import com.marchenaya.mypomodoro.domain.model.SessionType
-import com.marchenaya.mypomodoro.domain.model.TimerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -40,6 +41,10 @@ class TimerService : Service() {
         getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     }
 
+    private val alarmManager by lazy {
+        getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    }
+
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
@@ -49,8 +54,9 @@ class TimerService : Service() {
         when (intent?.action) {
             ACTION_START -> {
                 val remainingSeconds = intent.getIntExtra(EXTRA_REMAINING_SECONDS, -1)
+                val endTime = intent.getLongExtra(EXTRA_END_TIME, -1L)
                 showInitialForegroundNotification()
-                startTimer(remainingSeconds)
+                startTimer(remainingSeconds, endTime)
             }
 
             ACTION_STOP -> {
@@ -61,6 +67,12 @@ class TimerService : Service() {
                 notificationManager.cancel(FINISHED_NOTIFICATION_ID)
                 showInitialForegroundNotification()
                 startNextStep()
+            }
+
+            ACTION_FINISHED -> {
+                serviceScope.launch {
+                    onTimerFinished()
+                }
             }
 
             else -> {
@@ -91,11 +103,11 @@ class TimerService : Service() {
         }
     }
 
-    private fun startTimer(initialRemainingSeconds: Int = -1) {
+    private fun startTimer(initialRemainingSeconds: Int = -1, initialEndTime: Long = -1L) {
         timerJob?.cancel()
         timerJob = serviceScope.launch {
             var state = getTimerStateUseCase().first()
-            
+
             // Use passed remaining seconds if valid, otherwise use from state
             val startRemaining = if (initialRemainingSeconds != -1) {
                 initialRemainingSeconds
@@ -103,38 +115,94 @@ class TimerService : Service() {
                 state.remainingSeconds
             }
 
+            val endTime = if (initialEndTime != -1L) {
+                initialEndTime
+            } else {
+                System.currentTimeMillis() + (startRemaining * 1000L)
+            }
+
             // Force state to RUNNING if it's not already
-            if (state.timerState != TimerState.RUNNING) {
-                state = state.copy(timerState = TimerState.RUNNING, remainingSeconds = startRemaining)
+            if (state.timerState != TimerState.RUNNING || state.endTime != endTime) {
+                state = state.copy(
+                    timerState = TimerState.RUNNING,
+                    remainingSeconds = startRemaining,
+                    endTime = endTime
+                )
                 saveTimerStateUseCase(state)
             }
 
+            scheduleCompletionAlarm(endTime)
             notificationManager.notify(PROGRESS_NOTIFICATION_ID, createNotification(state))
 
-            var remaining = startRemaining
-            while (remaining > 0) {
-                delay(1000)
+            var lastSavedRemaining = startRemaining
+            while (true) {
+                val currentTime = System.currentTimeMillis()
+                val remaining = ((endTime - currentTime) / 1000).toInt().coerceAtLeast(0)
+
                 // Check state again to see if it was paused/stopped elsewhere
                 val currentState = getTimerStateUseCase().first()
                 if (currentState.timerState != TimerState.RUNNING) break
-                
-                remaining--
+
                 val updatedState = currentState.copy(remainingSeconds = remaining)
-                saveTimerStateUseCase(updatedState)
-                notificationManager.notify(PROGRESS_NOTIFICATION_ID, createNotification(updatedState))
+                notificationManager.notify(
+                    PROGRESS_NOTIFICATION_ID,
+                    createNotification(updatedState)
+                )
+
+                // Save to DataStore occasionally to keep UI in sync if service restarts
+                if (lastSavedRemaining - remaining >= 5 || remaining == 0) {
+                    saveTimerStateUseCase(updatedState)
+                    lastSavedRemaining = remaining
+                }
+
+                if (remaining <= 0) break
+                delay(1000)
             }
 
-            if (remaining <= 0) {
+            // We don't call onTimerFinished here because the AlarmManager will trigger it via ACTION_FINISHED
+            // This ensures it fires even if the service loop is suspended.
+            // However, if we are still running, we can stop the service now.
+            if (((endTime - System.currentTimeMillis()) / 1000).toInt() <= 0) {
+                // If we are already finished, let ACTION_FINISHED handle it or trigger it now if missed
                 onTimerFinished()
-            } else {
-                // If we broke out because state is no longer RUNNING, stop service
-                stopTimer()
             }
         }
     }
 
+    private fun scheduleCompletionAlarm(endTimeMillis: Long) {
+        val intent = Intent(this, TimerReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+            // Fallback to inexact or just rely on the foreground service if permission not granted
+            alarmManager.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                endTimeMillis,
+                pendingIntent
+            )
+            return
+        }
+
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            endTimeMillis,
+            pendingIntent
+        )
+    }
+
+    private fun cancelCompletionAlarm() {
+        val intent = Intent(this, TimerReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        alarmManager.cancel(pendingIntent)
+    }
+
     private fun stopTimer() {
         timerJob?.cancel()
+        cancelCompletionAlarm()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -159,14 +227,16 @@ class TimerService : Service() {
                         SessionType.SHORT_BREAK
                     }
                 }
+
                 SessionType.SHORT_BREAK, SessionType.LONG_BREAK -> SessionType.WORK
             }
 
-            val nextCompletedSessions = if (nextType == SessionType.LONG_BREAK || (currentType == SessionType.LONG_BREAK)) {
-                0
-            } else {
-                completedSessions
-            }
+            val nextCompletedSessions =
+                if (nextType == SessionType.LONG_BREAK || (currentType == SessionType.LONG_BREAK)) {
+                    0
+                } else {
+                    completedSessions
+                }
 
             val duration = when (nextType) {
                 SessionType.WORK -> getSettingsUseCase.workDuration.first()
@@ -174,32 +244,44 @@ class TimerService : Service() {
                 SessionType.LONG_BREAK -> getSettingsUseCase.longBreakDuration.first()
             }
 
+            val durationSeconds = duration * 60
+            val endTime = System.currentTimeMillis() + (durationSeconds * 1000L)
             val newState = PersistentTimerState(
                 sessionType = nextType,
                 timerState = TimerState.RUNNING,
-                remainingSeconds = duration * 60,
-                totalSeconds = duration * 60,
-                endTime = System.currentTimeMillis() + (duration * 60 * 1000L),
+                remainingSeconds = durationSeconds,
+                totalSeconds = durationSeconds,
+                endTime = endTime,
                 completedWorkSessions = nextCompletedSessions
             )
             saveTimerStateUseCase(newState)
-            startTimer()
+            startTimer(durationSeconds, endTime)
         }
     }
 
     private suspend fun onTimerFinished() {
         val state = getTimerStateUseCase().first()
-        val finishedState = state.copy(timerState = TimerState.IDLE, remainingSeconds = 0)
-        saveTimerStateUseCase(finishedState)
-        
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        
-        notificationManager.notify(FINISHED_NOTIFICATION_ID, createNotification(finishedState, isFinished = true))
-        
-        stopSelf()
+        // Only proceed if it was actually running and time is up (avoid double triggers)
+        if (state.timerState == TimerState.RUNNING || state.remainingSeconds > 0) {
+            val finishedState = state.copy(timerState = TimerState.IDLE, remainingSeconds = 0)
+            saveTimerStateUseCase(finishedState)
+
+            stopForeground(STOP_FOREGROUND_REMOVE)
+
+            notificationManager.notify(
+                FINISHED_NOTIFICATION_ID,
+                createNotification(finishedState, isFinished = true)
+            )
+
+            timerJob?.cancel()
+            stopSelf()
+        }
     }
 
-    private fun createNotification(state: PersistentTimerState, isFinished: Boolean = false): android.app.Notification {
+    private fun createNotification(
+        state: PersistentTimerState,
+        isFinished: Boolean = false
+    ): android.app.Notification {
         val channelId = if (isFinished) ALARM_CHANNEL_ID else PROGRESS_CHANNEL_ID
         val contentIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -278,7 +360,7 @@ class TimerService : Service() {
                 enableVibration(true)
                 setShowBadge(true)
             }
-            
+
             notificationManager.createNotificationChannel(progressChannel)
             notificationManager.createNotificationChannel(alarmChannel)
         }
@@ -289,14 +371,16 @@ class TimerService : Service() {
     companion object {
         const val PROGRESS_NOTIFICATION_ID = 1
         const val FINISHED_NOTIFICATION_ID = 2
-        
+
         const val PROGRESS_CHANNEL_ID = "timer_progress_channel"
         const val ALARM_CHANNEL_ID = "timer_alarm_channel"
 
         const val ACTION_START = "ACTION_START"
         const val ACTION_STOP = "ACTION_STOP"
         const val ACTION_NEXT_STEP = "ACTION_NEXT_STEP"
-        
+        const val ACTION_FINISHED = "ACTION_FINISHED"
+
         const val EXTRA_REMAINING_SECONDS = "EXTRA_REMAINING_SECONDS"
+        const val EXTRA_END_TIME = "EXTRA_END_TIME"
     }
 }
