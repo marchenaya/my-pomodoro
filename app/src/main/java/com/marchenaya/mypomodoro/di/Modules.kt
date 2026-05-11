@@ -9,23 +9,20 @@ import com.marchenaya.mypomodoro.domain.usecase.GetTimerStateUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveTimerStateUseCase
 import com.marchenaya.mypomodoro.presentation.feature.timer.TimerViewModel
-import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.koin.plugin.module.dsl.factory
+import org.koin.plugin.module.dsl.single
+import org.koin.plugin.module.dsl.viewModel
 
-val dataModule = module {
-    single<SettingsRepository> { SettingsRepositoryImpl(get()) }
-    single<TimerRepository> { TimerRepositoryImpl(get()) }
+val appModule = module {
+    single<SettingsRepositoryImpl>() bind SettingsRepository::class
+    single<TimerRepositoryImpl>() bind TimerRepository::class
+
+    factory<GetSettingsUseCase>()
+    factory<SaveSettingsUseCase>()
+    factory<GetTimerStateUseCase>()
+    factory<SaveTimerStateUseCase>()
+
+    viewModel<TimerViewModel>()
 }
-
-val domainModule = module {
-    factory { GetSettingsUseCase(get()) }
-    factory { SaveSettingsUseCase(get()) }
-    factory { GetTimerStateUseCase(get()) }
-    factory { SaveTimerStateUseCase(get()) }
-}
-
-val viewModelModule = module {
-    viewModel { TimerViewModel(get(), get(), get()) }
-}
-
-val appModule = listOf(dataModule, domainModule, viewModelModule)

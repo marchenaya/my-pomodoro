@@ -1,7 +1,7 @@
 package com.marchenaya.mypomodoro.domain.repository
 
-import com.marchenaya.mypomodoro.presentation.feature.timer.SessionType
-import com.marchenaya.mypomodoro.presentation.feature.timer.TimerState
+import com.marchenaya.mypomodoro.domain.model.SessionType
+import com.marchenaya.mypomodoro.domain.model.TimerState
 import kotlinx.coroutines.flow.Flow
 
 data class PersistentTimerState(

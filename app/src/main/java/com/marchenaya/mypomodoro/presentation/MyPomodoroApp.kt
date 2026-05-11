@@ -28,7 +28,7 @@ import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveSettingsUseCase
 import com.marchenaya.mypomodoro.navigation.Route
 import com.marchenaya.mypomodoro.presentation.feature.settings.SettingsScreen
-import com.marchenaya.mypomodoro.presentation.feature.timer.TimerScreen
+import com.marchenaya.mypomodoro.presentation.feature.timer.TimerScreenRoot
 import com.marchenaya.mypomodoro.presentation.feature.timer.TimerViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -67,9 +67,7 @@ fun MyPomodoroApp() {
                         }
                     )
                 ) {
-                    val timerViewModel: TimerViewModel = koinViewModel()
-                    TimerScreen(
-                        viewModel = timerViewModel,
+                    TimerScreenRoot(
                         onSettingsClick = {
                             if (backStack.none { it is Route.Settings }) {
                                 backStack.add(Route.Settings)

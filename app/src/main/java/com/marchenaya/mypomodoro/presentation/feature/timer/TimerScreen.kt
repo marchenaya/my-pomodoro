@@ -37,7 +37,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,25 +46,37 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.marchenaya.mypomodoro.R
-import com.marchenaya.mypomodoro.domain.repository.SettingsRepository
-import com.marchenaya.mypomodoro.domain.repository.PersistentTimerState
-import com.marchenaya.mypomodoro.domain.repository.TimerRepository
-import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
-import com.marchenaya.mypomodoro.domain.usecase.GetTimerStateUseCase
-import com.marchenaya.mypomodoro.domain.usecase.SaveTimerStateUseCase
+import com.marchenaya.mypomodoro.domain.model.SessionType
+import com.marchenaya.mypomodoro.domain.model.TimerState
 import com.marchenaya.mypomodoro.presentation.theme.MyPomodoroTheme
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import com.marchenaya.mypomodoro.presentation.util.ObserveAsEvents
+import org.koin.androidx.compose.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
-fun TimerScreen(
-    viewModel: TimerViewModel,
+fun TimerScreenRoot(
+    viewModel: TimerViewModel = koinViewModel(),
     onSettingsClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
 
+    ObserveAsEvents(viewModel.events) { event ->
+        when (event) {
+            TimerEvent.NavigateToSettings -> onSettingsClick()
+        }
+    }
+
+    TimerScreen(
+        uiState = uiState,
+        onAction = viewModel::onAction
+    )
+}
+
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
+@Composable
+private fun TimerScreen(
+    uiState: TimerUiState,
+    onAction: (TimerAction) -> Unit
+) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         val notificationPermissionState = rememberPermissionState(
             Manifest.permission.POST_NOTIFICATIONS
@@ -82,8 +93,11 @@ fun TimerScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name)) },
                 actions = {
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
+                    IconButton(onClick = { onAction(TimerAction.OnSettingsClick) }) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.settings)
+                        )
                     }
                 }
             )
@@ -107,7 +121,7 @@ fun TimerScreen(
                             index = index,
                             count = SessionType.entries.size
                         ),
-                        onClick = { viewModel.setSessionType(sessionType, context) },
+                        onClick = { onAction(TimerAction.SetSessionType(sessionType)) },
                         selected = uiState.sessionType == sessionType
                     ) {
                         Text(
@@ -167,7 +181,7 @@ fun TimerScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    onClick = { viewModel.resetTimer(context) },
+                    onClick = { onAction(TimerAction.ResetTimer) },
                     modifier = Modifier.size(56.dp)
                 ) {
                     Icon(
@@ -180,9 +194,9 @@ fun TimerScreen(
                 LargeFloatingActionButton(
                     onClick = {
                         if (uiState.timerState == TimerState.RUNNING) {
-                            viewModel.pauseTimer(context)
+                            onAction(TimerAction.PauseTimer)
                         } else {
-                            viewModel.startTimer(context)
+                            onAction(TimerAction.StartTimer)
                         }
                     },
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -216,39 +230,11 @@ private fun formatTime(seconds: Int): String {
 @Preview(showBackground = true)
 @Composable
 fun TimerScreenPreview() {
-    val mockRepository = object : SettingsRepository {
-        override val workDurationFlow: Flow<Int> = flowOf(25)
-        override val shortBreakDurationFlow: Flow<Int> = flowOf(5)
-        override val longBreakDurationFlow: Flow<Int> = flowOf(15)
-        override val sessionsBeforeLongBreakFlow: Flow<Int> = flowOf(4)
-        override suspend fun updateWorkDuration(duration: Int) {}
-        override suspend fun updateShortBreakDuration(duration: Int) {}
-        override suspend fun updateLongBreakDuration(duration: Int) {}
-        override suspend fun updateSessionsBeforeLongBreak(count: Int) {}
-    }
-    val mockTimerRepository = object : TimerRepository {
-        override val timerStateFlow: Flow<PersistentTimerState> = flowOf(
-            PersistentTimerState(
-                SessionType.WORK,
-                TimerState.IDLE,
-                25 * 60,
-                25 * 60,
-                0,
-                0
-            )
-        )
-        override suspend fun saveTimerState(state: PersistentTimerState) {}
-    }
-    val mockViewModel = TimerViewModel(
-        GetSettingsUseCase(mockRepository),
-        GetTimerStateUseCase(mockTimerRepository),
-        SaveTimerStateUseCase(mockTimerRepository)
-    )
     MyPomodoroTheme {
         Surface {
             TimerScreen(
-                viewModel = mockViewModel,
-                onSettingsClick = {}
+                uiState = TimerUiState(),
+                onAction = {}
             )
         }
     }

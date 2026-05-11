@@ -16,8 +16,8 @@ import com.marchenaya.mypomodoro.domain.repository.PersistentTimerState
 import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.GetTimerStateUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveTimerStateUseCase
-import com.marchenaya.mypomodoro.presentation.feature.timer.SessionType
-import com.marchenaya.mypomodoro.presentation.feature.timer.TimerState
+import com.marchenaya.mypomodoro.domain.model.SessionType
+import com.marchenaya.mypomodoro.domain.model.TimerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

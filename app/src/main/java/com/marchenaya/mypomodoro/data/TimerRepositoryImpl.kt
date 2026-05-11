@@ -10,8 +10,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.marchenaya.mypomodoro.domain.repository.PersistentTimerState
 import com.marchenaya.mypomodoro.domain.repository.TimerRepository
-import com.marchenaya.mypomodoro.presentation.feature.timer.SessionType
-import com.marchenaya.mypomodoro.presentation.feature.timer.TimerState
+import com.marchenaya.mypomodoro.domain.model.SessionType
+import com.marchenaya.mypomodoro.domain.model.TimerState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
