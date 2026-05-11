@@ -326,10 +326,6 @@ class TimerService : Service() {
             .setAutoCancel(isFinished)
             .setOnlyAlertOnce(!isFinished)
 
-        if (isFinished) {
-            builder.setFullScreenIntent(pendingIntent, true)
-        }
-
         builder.addAction(
             android.R.drawable.ic_media_next,
             getString(R.string.next_step),
