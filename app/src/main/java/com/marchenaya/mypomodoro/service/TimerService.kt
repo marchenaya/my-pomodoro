@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
@@ -38,11 +37,11 @@ class TimerService : Service() {
     private var timerJob: Job? = null
 
     private val notificationManager by lazy {
-        getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        getSystemService(NOTIFICATION_SERVICE) as NotificationManager
     }
 
     private val alarmManager by lazy {
-        getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        getSystemService(ALARM_SERVICE) as AlarmManager
     }
 
     override fun onCreate() {
@@ -86,7 +85,7 @@ class TimerService : Service() {
 
     private fun showInitialForegroundNotification() {
         val notification = NotificationCompat.Builder(this, PROGRESS_CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(getString(R.string.timer))
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -287,14 +286,20 @@ class TimerService : Service() {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, contentIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            this,
+            0,
+            contentIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val nextStepIntent = Intent(this, TimerService::class.java).apply {
             action = ACTION_NEXT_STEP
         }
         val nextStepPendingIntent = PendingIntent.getService(
-            this, 1, nextStepIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            this,
+            1,
+            nextStepIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val title = when (state.sessionType) {
@@ -316,7 +321,7 @@ class TimerService : Service() {
         }
 
         val builder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(if (isFinished) getString(R.string.app_name) else title)
             .setContentText(contentText)
             .setContentIntent(pendingIntent)
