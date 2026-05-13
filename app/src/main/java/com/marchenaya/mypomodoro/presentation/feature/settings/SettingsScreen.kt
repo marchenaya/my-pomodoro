@@ -19,7 +19,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -38,21 +37,22 @@ import com.marchenaya.mypomodoro.R
 import com.marchenaya.mypomodoro.domain.repository.SettingsRepository
 import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveSettingsUseCase
+import com.marchenaya.mypomodoro.presentation.feature.settings.components.NumberInputSetting
+import com.marchenaya.mypomodoro.presentation.feature.settings.components.TimeDurationInput
 import com.marchenaya.mypomodoro.presentation.theme.MyPomodoroTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     getSettingsUseCase: GetSettingsUseCase,
-    saveSettingsUseCase: SaveSettingsUseCase
+    saveSettingsUseCase: SaveSettingsUseCase,
 ) {
-    val workDuration by getSettingsUseCase.workDuration.collectAsState(initial = 25)
-    val shortBreakDuration by getSettingsUseCase.shortBreakDuration.collectAsState(initial = 5)
-    val longBreakDuration by getSettingsUseCase.longBreakDuration.collectAsState(initial = 15)
+    val workDuration by getSettingsUseCase.workDuration.collectAsState(initial = 25 * 60)
+    val shortBreakDuration by getSettingsUseCase.shortBreakDuration.collectAsState(initial = 5 * 60)
+    val longBreakDuration by getSettingsUseCase.longBreakDuration.collectAsState(initial = 15 * 60)
     val sessionsBeforeLongBreak by getSettingsUseCase.sessionsBeforeLongBreak.collectAsState(initial = 4)
     val scope = rememberCoroutineScope()
 
@@ -76,47 +76,48 @@ fun SettingsScreen(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            DurationSetting(
+            TimeDurationSetting(
                 label = stringResource(R.string.work_duration),
                 icon = Icons.Default.Work,
-                value = workDuration,
-                range = 1f..60f,
-                onValueChange = { scope.launch { saveSettingsUseCase.updateWorkDuration(it.roundToInt()) } }
+                durationSeconds = workDuration,
+                onDurationChange = { scope.launch { saveSettingsUseCase.updateWorkDuration(it) } }
             )
-            
+
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 0.5.dp)
 
-            DurationSetting(
+            TimeDurationSetting(
                 label = stringResource(R.string.short_break_duration),
                 icon = Icons.Default.Coffee,
-                value = shortBreakDuration,
-                range = 1f..20f,
-                onValueChange = { scope.launch { saveSettingsUseCase.updateShortBreakDuration(it.roundToInt()) } }
+                durationSeconds = shortBreakDuration,
+                onDurationChange = { scope.launch { saveSettingsUseCase.updateShortBreakDuration(it) } }
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 0.5.dp)
 
-            DurationSetting(
+            TimeDurationSetting(
                 label = stringResource(R.string.long_break_duration),
                 icon = Icons.Default.LocalCafe,
-                value = longBreakDuration,
-                range = 5f..45f,
-                onValueChange = { scope.launch { saveSettingsUseCase.updateLongBreakDuration(it.roundToInt()) } }
+                durationSeconds = longBreakDuration,
+                onDurationChange = { scope.launch { saveSettingsUseCase.updateLongBreakDuration(it) } }
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 0.5.dp)
 
-            DurationSetting(
+            NumberInputSetting(
                 label = stringResource(R.string.sessions_before_long_break),
                 icon = Icons.Default.Repeat,
                 value = sessionsBeforeLongBreak,
-                range = 1f..10f,
-                labelValueFormat = stringResource(R.string.sessions_count_format, sessionsBeforeLongBreak),
-                onValueChange = { scope.launch { saveSettingsUseCase.updateSessionsBeforeLongBreak(it.roundToInt()) } }
+                onValueChange = {
+                    scope.launch {
+                        saveSettingsUseCase.updateSessionsBeforeLongBreak(
+                            it
+                        )
+                    }
+                }
             )
-            
+
             Spacer(modifier = Modifier.height(32.dp))
-            
+
             Text(
                 text = stringResource(R.string.about),
                 style = MaterialTheme.typography.titleLarge,
@@ -134,13 +135,11 @@ fun SettingsScreen(
 }
 
 @Composable
-fun DurationSetting(
+fun TimeDurationSetting(
     label: String,
     icon: ImageVector,
-    value: Int,
-    range: ClosedFloatingPointRange<Float>,
-    labelValueFormat: String = stringResource(R.string.min_format, value),
-    onValueChange: (Float) -> Unit
+    durationSeconds: Int,
+    onDurationChange: (Int) -> Unit
 ) {
     Column {
         Row(
@@ -154,36 +153,27 @@ fun DurationSetting(
                 modifier = Modifier.padding(end = 12.dp)
             )
             Text(
-                text = label, 
+                text = label,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = labelValueFormat, 
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Slider(
-            value = value.toFloat(),
-            onValueChange = onValueChange,
-            valueRange = range,
-            steps = (range.endInclusive - range.start).toInt() - 1,
-            modifier = Modifier.fillMaxWidth()
+        Spacer(modifier = Modifier.height(12.dp))
+        TimeDurationInput(
+            durationSeconds = durationSeconds,
+            onDurationChange = onDurationChange
         )
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
 fun SettingsScreenPreview() {
     val mockRepository = object : SettingsRepository {
-        override val workDurationFlow: Flow<Int> = flowOf(25)
-        override val shortBreakDurationFlow: Flow<Int> = flowOf(5)
-        override val longBreakDurationFlow: Flow<Int> = flowOf(15)
+        override val workDurationFlow: Flow<Int> = flowOf(25 * 60)
+        override val shortBreakDurationFlow: Flow<Int> = flowOf(5 * 60)
+        override val longBreakDurationFlow: Flow<Int> = flowOf(15 * 60)
         override val sessionsBeforeLongBreakFlow: Flow<Int> = flowOf(4)
         override suspend fun updateWorkDuration(duration: Int) {}
         override suspend fun updateShortBreakDuration(duration: Int) {}

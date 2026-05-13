@@ -243,7 +243,7 @@ class TimerService : Service() {
                 SessionType.LONG_BREAK -> getSettingsUseCase.longBreakDuration.first()
             }
 
-            val durationSeconds = duration * 60
+            val durationSeconds = duration
             val endTime = System.currentTimeMillis() + (durationSeconds * 1000L)
             val newState = PersistentTimerState(
                 sessionType = nextType,
@@ -315,9 +315,16 @@ class TimerService : Service() {
                 SessionType.LONG_BREAK -> getString(R.string.long_break_complete_msg)
             }
         } else {
-            val minutes = state.remainingSeconds / 60
-            val seconds = state.remainingSeconds % 60
-            getString(R.string.remaining_time_format, minutes, seconds)
+            val totalSeconds = state.remainingSeconds
+            val hours = totalSeconds / 3600
+            val minutes = (totalSeconds % 3600) / 60
+            val seconds = totalSeconds % 60
+            
+            if (hours > 0) {
+                "%02d:%02d:%02d remaining".format(hours, minutes, seconds)
+            } else {
+                getString(R.string.remaining_time_format, minutes, seconds)
+            }
         }
 
         val builder = NotificationCompat.Builder(this, channelId)

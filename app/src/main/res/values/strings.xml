@@ -16,6 +16,9 @@
     <string name="sessions_before_long_break">Sessions before Long Break</string>
     <string name="sessions_count_format">%d sessions</string>
     <string name="min_format">%d min</string>
+    <string name="hours">Hours</string>
+    <string name="minutes">Minutes</string>
+    <string name="seconds">Seconds</string>
     <string name="about">About</string>
     <string name="about_description">Customize your productivity flow by adjusting the session durations above. Your changes are saved automatically.</string>
     <string name="timer_progress_channel_name">Timer Progress</string>

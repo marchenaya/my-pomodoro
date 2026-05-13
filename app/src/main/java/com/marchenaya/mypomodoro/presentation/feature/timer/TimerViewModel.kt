@@ -55,8 +55,8 @@ class TimerViewModel(
                         SessionType.LONG_BREAK -> long
                     }
                     savedState.copy(
-                        remainingSeconds = duration * 60,
-                        totalSeconds = duration * 60
+                        remainingSeconds = duration,
+                        totalSeconds = duration
                     )
                 } else {
                     savedState
@@ -141,8 +141,8 @@ class TimerViewModel(
             }
             _uiState.value = _uiState.value.copy(
                 timerState = TimerState.IDLE,
-                remainingSeconds = duration * 60,
-                totalSeconds = duration * 60
+                remainingSeconds = duration,
+                totalSeconds = duration
             )
             saveState()
         }
@@ -159,8 +159,8 @@ class TimerViewModel(
             _uiState.value = _uiState.value.copy(
                 sessionType = sessionType,
                 timerState = TimerState.IDLE,
-                remainingSeconds = duration * 60,
-                totalSeconds = duration * 60
+                remainingSeconds = duration,
+                totalSeconds = duration
             )
             saveState()
         }
