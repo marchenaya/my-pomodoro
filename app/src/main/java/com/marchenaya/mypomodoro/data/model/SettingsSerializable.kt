@@ -1,8 +1,9 @@
-package com.marchenaya.mypomodoro.domain.model
+package com.marchenaya.mypomodoro.data.model
 
 import kotlinx.serialization.Serializable
 
-data class Settings(
+@Serializable
+data class SettingsSerializable(
     val workDurationSeconds: Int = 25 * 60,
     val shortBreakDurationSeconds: Int = 5 * 60,
     val longBreakDurationSeconds: Int = 15 * 60,

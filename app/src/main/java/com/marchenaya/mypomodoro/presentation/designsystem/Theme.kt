@@ -1,4 +1,4 @@
-package com.marchenaya.mypomodoro.presentation.theme
+package com.marchenaya.mypomodoro.presentation.designsystem
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

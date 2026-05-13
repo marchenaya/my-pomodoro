@@ -39,7 +39,7 @@ import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveSettingsUseCase
 import com.marchenaya.mypomodoro.presentation.feature.settings.components.NumberInputSetting
 import com.marchenaya.mypomodoro.presentation.feature.settings.components.TimeDurationInput
-import com.marchenaya.mypomodoro.presentation.theme.MyPomodoroTheme
+import com.marchenaya.mypomodoro.presentation.designsystem.MyPomodoroTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch

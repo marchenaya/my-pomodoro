@@ -1,4 +1,4 @@
-package com.marchenaya.mypomodoro.service
+package com.marchenaya.mypomodoro.data.service
 
 import android.content.BroadcastReceiver
 import android.content.Context

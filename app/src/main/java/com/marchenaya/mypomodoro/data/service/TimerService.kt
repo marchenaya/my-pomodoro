@@ -1,6 +1,7 @@
-package com.marchenaya.mypomodoro.service
+package com.marchenaya.mypomodoro.data.service
 
 import android.app.AlarmManager
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -10,11 +11,11 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import com.marchenaya.mypomodoro.MainActivity
+import com.marchenaya.mypomodoro.app.MainActivity
 import com.marchenaya.mypomodoro.R
+import com.marchenaya.mypomodoro.domain.model.PersistentTimerState
 import com.marchenaya.mypomodoro.domain.model.SessionType
 import com.marchenaya.mypomodoro.domain.model.TimerState
-import com.marchenaya.mypomodoro.domain.repository.PersistentTimerState
 import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.GetTimerStateUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveTimerStateUseCase
@@ -280,7 +281,7 @@ class TimerService : Service() {
     private fun createNotification(
         state: PersistentTimerState,
         isFinished: Boolean = false
-    ): android.app.Notification {
+    ): Notification {
         val channelId = if (isFinished) ALARM_CHANNEL_ID else PROGRESS_CHANNEL_ID
         val contentIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

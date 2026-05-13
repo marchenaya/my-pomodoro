@@ -48,7 +48,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.marchenaya.mypomodoro.R
 import com.marchenaya.mypomodoro.domain.model.SessionType
 import com.marchenaya.mypomodoro.domain.model.TimerState
-import com.marchenaya.mypomodoro.presentation.theme.MyPomodoroTheme
+import com.marchenaya.mypomodoro.presentation.designsystem.MyPomodoroTheme
 import com.marchenaya.mypomodoro.presentation.util.ObserveAsEvents
 import org.koin.androidx.compose.koinViewModel
 

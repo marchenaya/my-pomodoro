@@ -1,7 +1,9 @@
-package com.marchenaya.mypomodoro
+package com.marchenaya.mypomodoro.app
 
 import android.app.Application
-import com.marchenaya.mypomodoro.di.appModule
+import com.marchenaya.mypomodoro.data.di.dataModule
+import com.marchenaya.mypomodoro.domain.di.domainModule
+import com.marchenaya.mypomodoro.presentation.di.presentationModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -13,7 +15,11 @@ class PomodoroApplication : Application() {
         startKoin {
             androidLogger()
             androidContext(this@PomodoroApplication)
-            modules(appModule)
+            modules(
+                dataModule,
+                domainModule,
+                presentationModule
+            )
         }
     }
 }

@@ -4,13 +4,13 @@ import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marchenaya.mypomodoro.domain.model.PersistentTimerState
 import com.marchenaya.mypomodoro.domain.model.SessionType
 import com.marchenaya.mypomodoro.domain.model.TimerState
-import com.marchenaya.mypomodoro.domain.repository.PersistentTimerState
 import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.GetTimerStateUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveTimerStateUseCase
-import com.marchenaya.mypomodoro.service.TimerService
+import com.marchenaya.mypomodoro.data.service.TimerService
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay

@@ -1,9 +1,7 @@
-package com.marchenaya.mypomodoro.presentation
+package com.marchenaya.mypomodoro.app
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -26,16 +24,13 @@ import androidx.navigation3.ui.NavDisplay
 import com.marchenaya.mypomodoro.R
 import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveSettingsUseCase
-import com.marchenaya.mypomodoro.navigation.Route
 import com.marchenaya.mypomodoro.presentation.feature.settings.SettingsScreen
 import com.marchenaya.mypomodoro.presentation.feature.timer.TimerScreenRoot
-import com.marchenaya.mypomodoro.presentation.feature.timer.TimerViewModel
-import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun MyPomodoroApp() {
+fun NavigationRoot() {
     val backStack: NavBackStack<NavKey> = rememberNavBackStack(Route.Timer)
 
     val windowAdaptiveInfo = currentWindowAdaptiveInfo()
@@ -45,47 +40,42 @@ fun MyPomodoroApp() {
     }
     val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>(directive = directive)
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        NavDisplay(
-            backStack = backStack,
-            onBack = { backStack.removeLastOrNull() },
-            entryDecorators = listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
-                rememberViewModelStoreNavEntryDecorator()
-            ),
-            sceneStrategies = listOf(listDetailStrategy),
-            entryProvider = entryProvider {
-                entry<Route.Timer>(
-                    metadata = ListDetailSceneStrategy.listPane(
-                        detailPlaceholder = {
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text(stringResource(R.string.select_settings_to_view_more))
-                            }
+    NavDisplay(
+        backStack = backStack,
+        onBack = { backStack.removeLastOrNull() },
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator()
+        ),
+        sceneStrategies = listOf(listDetailStrategy),
+        entryProvider = entryProvider {
+            entry<Route.Timer>(
+                metadata = ListDetailSceneStrategy.listPane(
+                    detailPlaceholder = {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(stringResource(R.string.select_settings_to_view_more))
                         }
-                    )
-                ) {
-                    TimerScreenRoot(
-                        onSettingsClick = {
-                            if (backStack.none { it is Route.Settings }) {
-                                backStack.add(Route.Settings)
-                            }
+                    }
+                )
+            ) {
+                TimerScreenRoot(
+                    onSettingsClick = {
+                        if (backStack.none { it is Route.Settings }) {
+                            backStack.add(Route.Settings)
                         }
-                    )
-                }
-                entry<Route.Settings>(
-                    metadata = ListDetailSceneStrategy.detailPane()
-                ) {
-                    val getSettingsUseCase: GetSettingsUseCase = koinInject()
-                    val saveSettingsUseCase: SaveSettingsUseCase = koinInject()
-                    SettingsScreen(
-                        getSettingsUseCase = getSettingsUseCase,
-                        saveSettingsUseCase = saveSettingsUseCase
-                    )
-                }
+                    }
+                )
             }
-        )
-    }
+            entry<Route.Settings>(
+                metadata = ListDetailSceneStrategy.detailPane()
+            ) {
+                val getSettingsUseCase: GetSettingsUseCase = koinInject()
+                val saveSettingsUseCase: SaveSettingsUseCase = koinInject()
+                SettingsScreen(
+                    getSettingsUseCase = getSettingsUseCase,
+                    saveSettingsUseCase = saveSettingsUseCase
+                )
+            }
+        }
+    )
 }

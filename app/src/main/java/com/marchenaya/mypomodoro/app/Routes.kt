@@ -1,4 +1,4 @@
-package com.marchenaya.mypomodoro.navigation
+package com.marchenaya.mypomodoro.app
 
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
