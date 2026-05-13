@@ -11,24 +11,12 @@ val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
+        fontSize = BODY_LARGE_FONT_SIZE.sp,
+        lineHeight = BODY_LARGE_LINE_HEIGHT.sp,
+        letterSpacing = BODY_LARGE_LETTER_SPACING.sp
     )
-    /* Other default text styles to override
-    titleLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp
-    ),
-    labelSmall = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
-    )
-    */
 )
+
+private const val BODY_LARGE_FONT_SIZE = 16
+private const val BODY_LARGE_LINE_HEIGHT = 24
+private const val BODY_LARGE_LETTER_SPACING = 0.5

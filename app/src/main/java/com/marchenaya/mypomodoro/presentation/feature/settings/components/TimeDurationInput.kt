@@ -11,34 +11,34 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.marchenaya.mypomodoro.R
 import com.marchenaya.mypomodoro.presentation.designsystem.MyPomodoroTheme
+import com.marchenaya.mypomodoro.presentation.designsystem.PaddingSmall
 
 @Composable
 fun TimeDurationInput(
     durationSeconds: Int,
     onDurationChange: (Int) -> Unit
 ) {
-    var hours by remember(durationSeconds) { mutableStateOf((durationSeconds / 3600).toString()) }
-    var minutes by remember(durationSeconds) { mutableStateOf(((durationSeconds % 3600) / 60).toString()) }
-    var seconds by remember(durationSeconds) { mutableStateOf((durationSeconds % 60).toString()) }
+    var hours by remember(durationSeconds) { mutableStateOf((durationSeconds / SECONDS_IN_HOUR).toString()) }
+    var minutes by remember(durationSeconds) { mutableStateOf(((durationSeconds % SECONDS_IN_HOUR) / SECONDS_IN_MINUTE).toString()) }
+    var seconds by remember(durationSeconds) { mutableStateOf((durationSeconds % SECONDS_IN_MINUTE).toString()) }
 
     fun updateDuration(hStr: String, mStr: String, sStr: String) {
         val h = hStr.toIntOrNull() ?: 0
         val m = mStr.toIntOrNull() ?: 0
         val s = sStr.toIntOrNull() ?: 0
-        onDurationChange(h * 3600 + m * 60 + s)
+        onDurationChange(h * SECONDS_IN_HOUR + m * SECONDS_IN_MINUTE + s)
     }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(PaddingSmall)
     ) {
         TimeUnitField(
             value = hours,
             onValueChange = {
-                if (it.length <= 2 && it.all { char -> char.isDigit() }) {
+                if (it.length <= MAX_LENGTH && it.all { char -> char.isDigit() }) {
                     hours = it
                     updateDuration(it, minutes, seconds)
                 }
@@ -49,7 +49,7 @@ fun TimeDurationInput(
         TimeUnitField(
             value = minutes,
             onValueChange = {
-                if (it.length <= 2 && it.all { char -> char.isDigit() }) {
+                if (it.length <= MAX_LENGTH && it.all { char -> char.isDigit() }) {
                     minutes = it
                     updateDuration(hours, it, seconds)
                 }
@@ -60,7 +60,7 @@ fun TimeDurationInput(
         TimeUnitField(
             value = seconds,
             onValueChange = {
-                if (it.length <= 2 && it.all { char -> char.isDigit() }) {
+                if (it.length <= MAX_LENGTH && it.all { char -> char.isDigit() }) {
                     seconds = it
                     updateDuration(hours, minutes, it)
                 }
@@ -70,6 +70,10 @@ fun TimeDurationInput(
         )
     }
 }
+
+private const val SECONDS_IN_HOUR = 3600
+private const val SECONDS_IN_MINUTE = 60
+private const val MAX_LENGTH = 2
 
 @Preview
 @Composable

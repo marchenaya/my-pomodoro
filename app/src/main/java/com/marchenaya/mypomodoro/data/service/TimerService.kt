@@ -11,8 +11,8 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import com.marchenaya.mypomodoro.app.MainActivity
 import com.marchenaya.mypomodoro.R
+import com.marchenaya.mypomodoro.app.MainActivity
 import com.marchenaya.mypomodoro.domain.model.PersistentTimerState
 import com.marchenaya.mypomodoro.domain.model.SessionType
 import com.marchenaya.mypomodoro.domain.model.TimerState
@@ -53,8 +53,8 @@ class TimerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START -> {
-                val remainingSeconds = intent.getIntExtra(EXTRA_REMAINING_SECONDS, -1)
-                val endTime = intent.getLongExtra(EXTRA_END_TIME, -1L)
+                val remainingSeconds = intent.getIntExtra(EXTRA_REMAINING_SECONDS, INVALID_TIME)
+                val endTime = intent.getLongExtra(EXTRA_END_TIME, INVALID_TIME_LONG)
                 showInitialForegroundNotification()
                 startTimer(remainingSeconds, endTime)
             }
@@ -109,16 +109,16 @@ class TimerService : Service() {
             var state = getTimerStateUseCase().first()
 
             // Use passed remaining seconds if valid, otherwise use from state
-            val startRemaining = if (initialRemainingSeconds != -1) {
+            val startRemaining = if (initialRemainingSeconds != INVALID_TIME) {
                 initialRemainingSeconds
             } else {
                 state.remainingSeconds
             }
 
-            val endTime = if (initialEndTime != -1L) {
+            val endTime = if (initialEndTime != INVALID_TIME_LONG) {
                 initialEndTime
             } else {
-                System.currentTimeMillis() + (startRemaining * 1000L)
+                System.currentTimeMillis() + (startRemaining * MILLIS_IN_SECOND)
             }
 
             // Force state to RUNNING if it's not already
@@ -137,7 +137,8 @@ class TimerService : Service() {
             var lastSavedRemaining = startRemaining
             while (true) {
                 val currentTime = System.currentTimeMillis()
-                val remaining = ((endTime - currentTime) / 1000).toInt().coerceAtLeast(0)
+                val remaining =
+                    ((endTime - currentTime) / MILLIS_IN_SECOND).toInt().coerceAtLeast(0)
 
                 // Check state again to see if it was paused/stopped elsewhere
                 val currentState = getTimerStateUseCase().first()
@@ -150,19 +151,19 @@ class TimerService : Service() {
                 )
 
                 // Save to DataStore occasionally to keep UI in sync if service restarts
-                if (lastSavedRemaining - remaining >= 5 || remaining == 0) {
+                if (lastSavedRemaining - remaining >= SAVE_INTERVAL_SECONDS || remaining == 0) {
                     saveTimerStateUseCase(updatedState)
                     lastSavedRemaining = remaining
                 }
 
                 if (remaining <= 0) break
-                delay(1000)
+                delay(TICK_DELAY_MILLIS)
             }
 
             // We don't call onTimerFinished here because the AlarmManager will trigger it via ACTION_FINISHED
             // This ensures it fires even if the service loop is suspended.
             // However, if we are still running, we can stop the service now.
-            if (((endTime - System.currentTimeMillis()) / 1000).toInt() <= 0) {
+            if (((endTime - System.currentTimeMillis()) / MILLIS_IN_SECOND).toInt() <= 0) {
                 // If we are already finished, let ACTION_FINISHED handle it or trigger it now if missed
                 onTimerFinished()
             }
@@ -172,7 +173,10 @@ class TimerService : Service() {
     private fun scheduleCompletionAlarm(endTimeMillis: Long) {
         val intent = Intent(this, TimerReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
-            this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            this,
+            ALARM_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
@@ -195,7 +199,10 @@ class TimerService : Service() {
     private fun cancelCompletionAlarm() {
         val intent = Intent(this, TimerReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
-            this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            this,
+            ALARM_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         alarmManager.cancel(pendingIntent)
     }
@@ -245,7 +252,7 @@ class TimerService : Service() {
             }
 
             val durationSeconds = duration
-            val endTime = System.currentTimeMillis() + (durationSeconds * 1000L)
+            val endTime = System.currentTimeMillis() + (durationSeconds * MILLIS_IN_SECOND)
             val newState = PersistentTimerState(
                 sessionType = nextType,
                 timerState = TimerState.RUNNING,
@@ -288,7 +295,7 @@ class TimerService : Service() {
         }
         val pendingIntent = PendingIntent.getActivity(
             this,
-            0,
+            MAIN_ACTIVITY_REQUEST_CODE,
             contentIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -298,7 +305,7 @@ class TimerService : Service() {
         }
         val nextStepPendingIntent = PendingIntent.getService(
             this,
-            1,
+            NEXT_STEP_REQUEST_CODE,
             nextStepIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -317,12 +324,12 @@ class TimerService : Service() {
             }
         } else {
             val totalSeconds = state.remainingSeconds
-            val hours = totalSeconds / 3600
-            val minutes = (totalSeconds % 3600) / 60
-            val seconds = totalSeconds % 60
+            val hours = totalSeconds / SECONDS_IN_HOUR
+            val minutes = (totalSeconds % SECONDS_IN_HOUR) / SECONDS_IN_MINUTE
+            val seconds = totalSeconds % SECONDS_IN_MINUTE
             
             if (hours > 0) {
-                "%02d:%02d:%02d remaining".format(hours, minutes, seconds)
+                REMAINING_TIME_FORMAT_WITH_HOURS.format(hours, minutes, seconds)
             } else {
                 getString(R.string.remaining_time_format, minutes, seconds)
             }
@@ -391,5 +398,20 @@ class TimerService : Service() {
 
         const val EXTRA_REMAINING_SECONDS = "EXTRA_REMAINING_SECONDS"
         const val EXTRA_END_TIME = "EXTRA_END_TIME"
+
+        private const val TICK_DELAY_MILLIS = 1000L
+        private const val SAVE_INTERVAL_SECONDS = 5
+        private const val MILLIS_IN_SECOND = 1000L
+        private const val SECONDS_IN_MINUTE = 60
+        private const val SECONDS_IN_HOUR = 3600
+
+        private const val REMAINING_TIME_FORMAT_WITH_HOURS = "%02d:%02d:%02d remaining"
+
+        private const val MAIN_ACTIVITY_REQUEST_CODE = 0
+        private const val NEXT_STEP_REQUEST_CODE = 1
+        private const val ALARM_REQUEST_CODE = 0
+
+        const val INVALID_TIME = -1
+        const val INVALID_TIME_LONG = -1L
     }
 }

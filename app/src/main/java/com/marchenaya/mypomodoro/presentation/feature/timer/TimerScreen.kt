@@ -40,7 +40,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -48,7 +47,15 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.marchenaya.mypomodoro.R
 import com.marchenaya.mypomodoro.domain.model.SessionType
 import com.marchenaya.mypomodoro.domain.model.TimerState
+import com.marchenaya.mypomodoro.presentation.designsystem.ButtonSizeMedium
+import com.marchenaya.mypomodoro.presentation.designsystem.IconSizeLarge
+import com.marchenaya.mypomodoro.presentation.designsystem.IconSizeMedium
 import com.marchenaya.mypomodoro.presentation.designsystem.MyPomodoroTheme
+import com.marchenaya.mypomodoro.presentation.designsystem.PaddingHuge
+import com.marchenaya.mypomodoro.presentation.designsystem.PaddingLarge
+import com.marchenaya.mypomodoro.presentation.designsystem.PaddingMedium
+import com.marchenaya.mypomodoro.presentation.designsystem.ProgressIndicatorSize
+import com.marchenaya.mypomodoro.presentation.designsystem.ProgressIndicatorStrokeWidth
 import com.marchenaya.mypomodoro.presentation.util.ObserveAsEvents
 import org.koin.androidx.compose.koinViewModel
 
@@ -113,7 +120,7 @@ private fun TimerScreen(
             SingleChoiceSegmentedButtonRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = PaddingMedium)
             ) {
                 SessionType.entries.forEachIndexed { index, sessionType ->
                     SegmentedButton(
@@ -135,7 +142,7 @@ private fun TimerScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(PaddingHuge))
 
             Box(contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(
@@ -144,13 +151,13 @@ private fun TimerScreen(
                             uiState.remainingSeconds.toFloat() / uiState.totalSeconds.toFloat()
                         } else 0f
                     },
-                    modifier = Modifier.size(300.dp),
+                    modifier = Modifier.size(ProgressIndicatorSize),
                     color = when (uiState.sessionType) {
                         SessionType.WORK -> MaterialTheme.colorScheme.primary
                         SessionType.SHORT_BREAK -> MaterialTheme.colorScheme.secondary
                         SessionType.LONG_BREAK -> MaterialTheme.colorScheme.tertiary
                     },
-                    strokeWidth = 12.dp,
+                    strokeWidth = ProgressIndicatorStrokeWidth,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant,
                     strokeCap = StrokeCap.Round
                 )
@@ -158,13 +165,13 @@ private fun TimerScreen(
                 Text(
                     text = formatTime(uiState.remainingSeconds),
                     style = MaterialTheme.typography.displayLarge.copy(
-                        fontSize = 64.sp,
+                        fontSize = TIMER_TEXT_SIZE_SP.sp,
                         fontWeight = FontWeight.Bold
                     )
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(PaddingLarge))
 
             Text(
                 text = if (uiState.sessionType == SessionType.WORK) {
@@ -174,20 +181,20 @@ private fun TimerScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(PaddingLarge))
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(24.dp),
+                horizontalArrangement = Arrangement.spacedBy(PaddingLarge),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
                     onClick = { onAction(TimerAction.ResetTimer) },
-                    modifier = Modifier.size(56.dp)
+                    modifier = Modifier.size(ButtonSizeMedium)
                 ) {
                     Icon(
                         Icons.Default.Refresh,
                         contentDescription = stringResource(R.string.reset),
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(IconSizeMedium)
                     )
                 }
 
@@ -213,7 +220,7 @@ private fun TimerScreen(
                         } else {
                             stringResource(R.string.start)
                         },
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(IconSizeLarge)
                     )
                 }
             }
@@ -222,15 +229,23 @@ private fun TimerScreen(
 }
 
 private fun formatTime(seconds: Int): String {
-    val h = seconds / 3600
-    val m = (seconds % 3600) / 60
-    val s = seconds % 60
+    val h = seconds / SECONDS_IN_HOUR
+    val m = (seconds % SECONDS_IN_HOUR) / SECONDS_IN_MINUTE
+    val s = seconds % SECONDS_IN_MINUTE
     return if (h > 0) {
-        "%02d:%02d:%02d".format(h, m, s)
+        TIME_FORMAT_WITH_HOURS.format(h, m, s)
     } else {
-        "%02d:%02d".format(m, s)
+        TIME_FORMAT_WITHOUT_HOURS.format(m, s)
     }
 }
+
+private const val TIMER_TEXT_SIZE_SP = 64
+
+private const val SECONDS_IN_HOUR = 3600
+private const val SECONDS_IN_MINUTE = 60
+
+private const val TIME_FORMAT_WITH_HOURS = "%02d:%02d:%02d"
+private const val TIME_FORMAT_WITHOUT_HOURS = "%02d:%02d"
 
 @Preview(showBackground = true)
 @Composable

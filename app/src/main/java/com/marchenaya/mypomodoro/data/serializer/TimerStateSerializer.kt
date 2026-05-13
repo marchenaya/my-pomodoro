@@ -7,6 +7,7 @@ import com.marchenaya.mypomodoro.data.model.PersistentTimerStateSerializable
 import com.marchenaya.mypomodoro.domain.dispatcher.DispatcherProvider
 import com.marchenaya.mypomodoro.domain.model.PersistentTimerState
 import com.marchenaya.mypomodoro.domain.model.SessionType
+import com.marchenaya.mypomodoro.domain.model.Settings
 import com.marchenaya.mypomodoro.domain.model.TimerState
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
@@ -20,10 +21,10 @@ class TimerStateSerializer(
     override val defaultValue: PersistentTimerState = PersistentTimerState(
         sessionType = SessionType.WORK,
         timerState = TimerState.IDLE,
-        remainingSeconds = 25 * 60,
-        totalSeconds = 25 * 60,
-        endTime = 0L,
-        completedWorkSessions = 0
+        remainingSeconds = Settings.DEFAULT_WORK_DURATION,
+        totalSeconds = Settings.DEFAULT_WORK_DURATION,
+        endTime = DEFAULT_END_TIME,
+        completedWorkSessions = DEFAULT_COMPLETED_SESSIONS
     )
 
     override suspend fun readFrom(input: InputStream): PersistentTimerState {
@@ -47,3 +48,6 @@ class TimerStateSerializer(
         }
     }
 }
+
+private const val DEFAULT_END_TIME = 0L
+private const val DEFAULT_COMPLETED_SESSIONS = 0

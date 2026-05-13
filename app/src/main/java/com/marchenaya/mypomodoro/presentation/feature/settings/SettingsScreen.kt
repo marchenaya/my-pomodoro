@@ -26,9 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.marchenaya.mypomodoro.R
+import com.marchenaya.mypomodoro.domain.model.Settings
+import com.marchenaya.mypomodoro.presentation.designsystem.DividerThickness
 import com.marchenaya.mypomodoro.presentation.designsystem.MyPomodoroTheme
+import com.marchenaya.mypomodoro.presentation.designsystem.PaddingExtraLarge
+import com.marchenaya.mypomodoro.presentation.designsystem.PaddingMedium
+import com.marchenaya.mypomodoro.presentation.designsystem.PaddingSmall
 import com.marchenaya.mypomodoro.presentation.feature.settings.components.NumberInputSetting
 import com.marchenaya.mypomodoro.presentation.feature.settings.components.TimeDurationSetting
 import org.koin.androidx.compose.koinViewModel
@@ -60,7 +64,7 @@ private fun SettingsContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(PaddingMedium)
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
@@ -68,7 +72,7 @@ private fun SettingsContent(
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = PaddingMedium)
             )
 
             TimeDurationSetting(
@@ -78,7 +82,10 @@ private fun SettingsContent(
                 onDurationChange = { onAction(SettingsAction.UpdateWorkDuration(it)) }
             )
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 0.5.dp)
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = PaddingMedium),
+                thickness = DividerThickness
+            )
 
             TimeDurationSetting(
                 label = stringResource(R.string.short_break_duration),
@@ -87,7 +94,10 @@ private fun SettingsContent(
                 onDurationChange = { onAction(SettingsAction.UpdateShortBreakDuration(it)) }
             )
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 0.5.dp)
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = PaddingMedium),
+                thickness = DividerThickness
+            )
 
             TimeDurationSetting(
                 label = stringResource(R.string.long_break_duration),
@@ -96,7 +106,10 @@ private fun SettingsContent(
                 onDurationChange = { onAction(SettingsAction.UpdateLongBreakDuration(it)) }
             )
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 0.5.dp)
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = PaddingMedium),
+                thickness = DividerThickness
+            )
 
             NumberInputSetting(
                 label = stringResource(R.string.sessions_before_long_break),
@@ -105,14 +118,14 @@ private fun SettingsContent(
                 onValueChange = { onAction(SettingsAction.UpdateSessionsBeforeLongBreak(it)) }
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(PaddingExtraLarge))
 
             Text(
                 text = stringResource(R.string.about),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = PaddingSmall)
             )
             Text(
                 text = stringResource(R.string.about_description),
@@ -126,14 +139,15 @@ private fun SettingsContent(
 @Preview(showBackground = true)
 @Composable
 fun SettingsScreenPreview() {
+    val settings = Settings()
     MyPomodoroTheme {
         Surface {
             SettingsContent(
                 uiState = SettingsUiState(
-                    workDuration = 25 * 60,
-                    shortBreakDuration = 5 * 60,
-                    longBreakDuration = 15 * 60,
-                    sessionsBeforeLongBreak = 4
+                    workDuration = settings.workDurationSeconds,
+                    shortBreakDuration = settings.shortBreakDurationSeconds,
+                    longBreakDuration = settings.longBreakDurationSeconds,
+                    sessionsBeforeLongBreak = settings.sessionsBeforeLongBreak
                 ),
                 onAction = {}
             )

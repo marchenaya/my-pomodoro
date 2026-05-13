@@ -28,8 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.marchenaya.mypomodoro.presentation.designsystem.MyPomodoroTheme
+import com.marchenaya.mypomodoro.presentation.designsystem.PaddingMedium
+import com.marchenaya.mypomodoro.presentation.designsystem.PaddingSmall
 
 @Composable
 fun NumberInputSetting(
@@ -51,7 +52,7 @@ fun NumberInputSetting(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(end = 12.dp)
+                modifier = Modifier.padding(end = PaddingSmall)
             )
             Text(
                 text = label,
@@ -59,7 +60,7 @@ fun NumberInputSetting(
                 fontWeight = FontWeight.SemiBold
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(PaddingSmall))
         OutlinedTextField(
             value = textValue,
             onValueChange = { newValue ->
@@ -72,24 +73,29 @@ fun NumberInputSetting(
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .onFocusChanged { focusState ->
                     if (focusState.isFocused) {
                         textValue = textValue.copy(selection = TextRange(0, textValue.text.length))
                     } else if (textValue.text.isEmpty()) {
-                        textValue = TextFieldValue(text = "1", selection = TextRange(1))
-                        onValueChange(1)
+                        textValue =
+                            TextFieldValue(text = DEFAULT_VALUE_STR, selection = TextRange(1))
+                        onValueChange(DEFAULT_VALUE_INT)
                     }
                 }
         )
     }
 }
 
+private const val DEFAULT_VALUE_STR = "1"
+private const val DEFAULT_VALUE_INT = 1
+
 @Preview
 @Composable
 fun NumberInputSettingPreview() {
     MyPomodoroTheme {
-        Surface(modifier = Modifier.padding(16.dp)) {
+        Surface(modifier = Modifier.padding(PaddingMedium)) {
             NumberInputSetting(
                 label = "Sessions before long break",
                 icon = Icons.Default.Repeat,

@@ -1,8 +1,10 @@
 package com.marchenaya.mypomodoro.presentation.feature.settings
 
+import com.marchenaya.mypomodoro.domain.model.Settings
+
 data class SettingsUiState(
-    val workDuration: Int = 25 * 60,
-    val shortBreakDuration: Int = 5 * 60,
-    val longBreakDuration: Int = 15 * 60,
-    val sessionsBeforeLongBreak: Int = 4
+    val workDuration: Int = Settings.DEFAULT_WORK_DURATION,
+    val shortBreakDuration: Int = Settings.DEFAULT_SHORT_BREAK_DURATION,
+    val longBreakDuration: Int = Settings.DEFAULT_LONG_BREAK_DURATION,
+    val sessionsBeforeLongBreak: Int = Settings.DEFAULT_SESSIONS_BEFORE_LONG_BREAK
 )

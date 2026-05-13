@@ -18,8 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.marchenaya.mypomodoro.presentation.designsystem.MyPomodoroTheme
+import com.marchenaya.mypomodoro.presentation.designsystem.PaddingMedium
+import com.marchenaya.mypomodoro.presentation.designsystem.PaddingSmall
 
 @Composable
 fun TimeDurationSetting(
@@ -37,7 +38,7 @@ fun TimeDurationSetting(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(end = 12.dp)
+                modifier = Modifier.padding(end = PaddingSmall)
             )
             Text(
                 text = label,
@@ -45,7 +46,7 @@ fun TimeDurationSetting(
                 fontWeight = FontWeight.SemiBold
             )
         }
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(PaddingSmall))
         TimeDurationInput(
             durationSeconds = durationSeconds,
             onDurationChange = onDurationChange
@@ -57,7 +58,7 @@ fun TimeDurationSetting(
 @Composable
 fun TimeDurationSettingPreview() {
     MyPomodoroTheme {
-        Surface(modifier = Modifier.padding(16.dp)) {
+        Surface(modifier = Modifier.padding(PaddingMedium)) {
             TimeDurationSetting(
                 label = "Work Duration",
                 icon = Icons.Default.Work,

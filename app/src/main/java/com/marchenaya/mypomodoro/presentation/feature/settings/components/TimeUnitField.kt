@@ -32,7 +32,7 @@ fun TimeUnitField(
         value = textFieldValue,
         onValueChange = { newValue ->
             val filteredText = newValue.text.filter { it.isDigit() }
-            if (filteredText.length <= 2) {
+            if (filteredText.length <= MAX_LENGTH) {
                 textFieldValue = newValue.copy(text = filteredText)
                 onValueChange(filteredText)
             }
@@ -42,20 +42,23 @@ fun TimeUnitField(
         singleLine = true,
         modifier = modifier.onFocusChanged { focusState ->
             if (focusState.isFocused) {
-                textFieldValue = if (textFieldValue.text == "0") {
+                textFieldValue = if (textFieldValue.text == DEFAULT_VALUE) {
                     TextFieldValue(text = "", selection = TextRange(0))
                 } else {
                     textFieldValue.copy(selection = TextRange(0, textFieldValue.text.length))
                 }
             } else {
                 if (textFieldValue.text.isEmpty()) {
-                    textFieldValue = TextFieldValue(text = "0", selection = TextRange(1))
-                    onValueChange("0")
+                    textFieldValue = TextFieldValue(text = DEFAULT_VALUE, selection = TextRange(1))
+                    onValueChange(DEFAULT_VALUE)
                 }
             }
         }
     )
 }
+
+private const val MAX_LENGTH = 2
+private const val DEFAULT_VALUE = "0"
 
 @Preview
 @Composable

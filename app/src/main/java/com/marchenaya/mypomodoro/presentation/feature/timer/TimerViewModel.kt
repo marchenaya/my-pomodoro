@@ -4,13 +4,13 @@ import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marchenaya.mypomodoro.data.service.TimerService
 import com.marchenaya.mypomodoro.domain.model.PersistentTimerState
 import com.marchenaya.mypomodoro.domain.model.SessionType
 import com.marchenaya.mypomodoro.domain.model.TimerState
 import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.GetTimerStateUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveTimerStateUseCase
-import com.marchenaya.mypomodoro.data.service.TimerService
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -67,7 +67,8 @@ class TimerViewModel(
                     sessionType = state.sessionType,
                     timerState = state.timerState,
                     remainingSeconds = if (state.timerState == TimerState.RUNNING) {
-                        ((state.endTime - System.currentTimeMillis()) / 1000).toInt().coerceAtLeast(0)
+                        ((state.endTime - System.currentTimeMillis()) / MILLIS_IN_SECOND).toInt()
+                            .coerceAtLeast(0)
                     } else {
                         state.remainingSeconds
                     },
@@ -88,10 +89,11 @@ class TimerViewModel(
         countdownJob?.cancel()
         countdownJob = viewModelScope.launch {
             while (true) {
-                val remaining = ((endTime - System.currentTimeMillis()) / 1000).toInt().coerceAtLeast(0)
+                val remaining = ((endTime - System.currentTimeMillis()) / MILLIS_IN_SECOND).toInt()
+                    .coerceAtLeast(0)
                 _uiState.value = _uiState.value.copy(remainingSeconds = remaining)
                 if (remaining <= 0) break
-                delay(500)
+                delay(UI_TICK_DELAY_MILLIS)
             }
         }
     }
@@ -119,7 +121,7 @@ class TimerViewModel(
             timerState = TimerState.RUNNING,
             remainingSeconds = newRemaining
         )
-        val endTime = System.currentTimeMillis() + (newRemaining * 1000L)
+        val endTime = System.currentTimeMillis() + (newRemaining * MILLIS_IN_SECOND)
 
         saveState(endTime)
         startService(TimerService.ACTION_START, newRemaining, endTime)
@@ -181,13 +183,17 @@ class TimerViewModel(
         }
     }
 
-    private fun startService(action: String, remainingSeconds: Int = -1, endTime: Long = -1L) {
+    private fun startService(
+        action: String,
+        remainingSeconds: Int = INVALID_TIME,
+        endTime: Long = INVALID_TIME_LONG
+    ) {
         val intent = Intent(context, TimerService::class.java).apply {
             this.action = action
-            if (remainingSeconds != -1) {
+            if (remainingSeconds != INVALID_TIME) {
                 putExtra(TimerService.EXTRA_REMAINING_SECONDS, remainingSeconds)
             }
-            if (endTime != -1L) {
+            if (endTime != INVALID_TIME_LONG) {
                 putExtra(TimerService.EXTRA_END_TIME, endTime)
             }
         }
@@ -200,5 +206,12 @@ class TimerViewModel(
         } else {
             context.startService(intent)
         }
+    }
+
+    companion object {
+        private const val MILLIS_IN_SECOND = 1000L
+        private const val UI_TICK_DELAY_MILLIS = 500L
+        private const val INVALID_TIME = -1
+        private const val INVALID_TIME_LONG = -1L
     }
 }
