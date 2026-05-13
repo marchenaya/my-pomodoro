@@ -6,7 +6,7 @@ import com.marchenaya.mypomodoro.domain.model.PersistentTimerState
 import com.marchenaya.mypomodoro.domain.model.SessionType
 import com.marchenaya.mypomodoro.domain.model.TimerState
 import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
-import com.marchenaya.mypomodoro.domain.usecase.GetTimerStateUseCase
+import com.marchenaya.mypomodoro.domain.usecase.GetTimerStatusUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveTimerStateUseCase
 import com.marchenaya.mypomodoro.domain.usecase.StartTimerUseCase
 import com.marchenaya.mypomodoro.domain.usecase.StopTimerUseCase
@@ -16,7 +16,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -25,7 +24,7 @@ import kotlinx.coroutines.launch
 
 class TimerViewModel(
     private val getSettingsUseCase: GetSettingsUseCase,
-    getTimerStateUseCase: GetTimerStateUseCase,
+    getTimerStatusUseCase: GetTimerStatusUseCase,
     private val saveTimerStateUseCase: SaveTimerStateUseCase,
     private val startTimerUseCase: StartTimerUseCase,
     private val stopTimerUseCase: StopTimerUseCase
@@ -40,27 +39,24 @@ class TimerViewModel(
     private var countdownJob: Job? = null
 
     init {
-        combine(
-            getTimerStateUseCase(),
-            getSettingsUseCase.workDuration,
-            getSettingsUseCase.shortBreakDuration,
-            getSettingsUseCase.longBreakDuration
-        ) { savedState, work, short, long ->
-            if (savedState.timerState == TimerState.IDLE) {
-                val duration = when (savedState.sessionType) {
-                    SessionType.WORK -> work
-                    SessionType.SHORT_BREAK -> short
-                    SessionType.LONG_BREAK -> long
+        getTimerStatusUseCase()
+            .onEach { status ->
+                val state = status.persistentTimerState
+                val work = status.workDuration
+                val short = status.shortBreakDuration
+                val long = status.longBreakDuration
+
+                val (processedRemaining, processedTotal) = if (state.timerState == TimerState.IDLE) {
+                    val duration = when (state.sessionType) {
+                        SessionType.WORK -> work
+                        SessionType.SHORT_BREAK -> short
+                        SessionType.LONG_BREAK -> long
+                    }
+                    duration to duration
+                } else {
+                    state.remainingSeconds to state.totalSeconds
                 }
-                savedState.copy(
-                    remainingSeconds = duration,
-                    totalSeconds = duration
-                )
-            } else {
-                savedState
-            }
-        }
-            .onEach { state ->
+
                 _uiState.value = TimerUiState(
                     sessionType = state.sessionType,
                     timerState = state.timerState,
@@ -68,9 +64,9 @@ class TimerViewModel(
                         ((state.endTime - System.currentTimeMillis()) / MILLIS_IN_SECOND).toInt()
                             .coerceAtLeast(0)
                     } else {
-                        state.remainingSeconds
+                        processedRemaining
                     },
-                    totalSeconds = state.totalSeconds,
+                    totalSeconds = processedTotal,
                     completedWorkSessions = state.completedWorkSessions
                 )
 

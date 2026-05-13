@@ -2,6 +2,7 @@ package com.marchenaya.mypomodoro.domain.di
 
 import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.GetTimerStateUseCase
+import com.marchenaya.mypomodoro.domain.usecase.GetTimerStatusUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveTimerStateUseCase
 import com.marchenaya.mypomodoro.domain.usecase.StartTimerUseCase
@@ -16,4 +17,5 @@ val domainModule = module {
     factoryOf(::SaveTimerStateUseCase)
     factoryOf(::StartTimerUseCase)
     factoryOf(::StopTimerUseCase)
+    factoryOf(::GetTimerStatusUseCase)
 }

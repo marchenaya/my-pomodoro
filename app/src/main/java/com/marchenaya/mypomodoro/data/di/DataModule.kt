@@ -7,16 +7,18 @@ import com.marchenaya.mypomodoro.data.repository.SettingsRepositoryImpl
 import com.marchenaya.mypomodoro.data.repository.TimerRepositoryImpl
 import com.marchenaya.mypomodoro.data.serializer.SettingsSerializer
 import com.marchenaya.mypomodoro.data.serializer.TimerStateSerializer
-import com.marchenaya.mypomodoro.data.service.TimerController
 import com.marchenaya.mypomodoro.data.service.TimerControllerImpl
 import com.marchenaya.mypomodoro.domain.dispatcher.DispatcherProvider
 import com.marchenaya.mypomodoro.domain.repository.SettingsRepository
+import com.marchenaya.mypomodoro.domain.repository.TimerController
 import com.marchenaya.mypomodoro.domain.repository.TimerRepository
-import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
+
+private const val SETTINGS_DATA_STORE = "SettingsDataStore"
+private const val TIMER_STATE_DATA_STORE = "TimerStateDataStore"
 
 val dataModule = module {
     singleOf(::SettingsDataStore)
@@ -24,18 +26,17 @@ val dataModule = module {
     singleOf(::TimerStateDataStore)
     singleOf(::TimerStateSerializer)
 
-    single(named("SettingsDataStore")) { get<SettingsDataStore>().create() }
-    single(named("TimerStateDataStore")) { get<TimerStateDataStore>().create() }
+    single(named(SETTINGS_DATA_STORE)) { get<SettingsDataStore>().create() }
+    single(named(TIMER_STATE_DATA_STORE)) { get<TimerStateDataStore>().create() }
 
     single<SettingsRepository> {
-        SettingsRepositoryImpl(get(named("SettingsDataStore")))
-    }
-    single<TimerController> {
-        TimerControllerImpl(androidContext())
+        SettingsRepositoryImpl(get(named(SETTINGS_DATA_STORE)))
     }
     single<TimerRepository> {
-        TimerRepositoryImpl(get(named("TimerStateDataStore")), get())
+        TimerRepositoryImpl(get(named(TIMER_STATE_DATA_STORE)))
     }
 
-    singleOf(::DefaultDispatcherProvider).bind<DispatcherProvider>()
+    singleOf(::TimerControllerImpl) bind TimerController::class
+
+    singleOf(::DefaultDispatcherProvider) bind DispatcherProvider::class
 }

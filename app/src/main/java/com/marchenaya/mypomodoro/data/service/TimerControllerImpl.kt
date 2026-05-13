@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 
+import com.marchenaya.mypomodoro.domain.repository.TimerController
+
 class TimerControllerImpl(private val context: Context) : TimerController {
 
     override fun start(remainingSeconds: Int, endTime: Long) {
