@@ -37,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -175,7 +176,11 @@ private fun TimerScreen(
 
             Text(
                 text = if (uiState.sessionType == SessionType.WORK) {
-                    stringResource(R.string.sessions_count_format, uiState.completedWorkSessions)
+                    pluralStringResource(
+                        R.plurals.sessions_count_format,
+                        uiState.completedWorkSessions,
+                        uiState.completedWorkSessions
+                    )
                 } else "",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant

@@ -121,7 +121,7 @@ class TimerService : Service() {
                 System.currentTimeMillis() + (startRemaining * MILLIS_IN_SECOND)
             }
 
-            // Force state to RUNNING if it's not already
+            // Force state to RUN if it's not already
             if (state.timerState != TimerState.RUNNING || state.endTime != endTime) {
                 state = state.copy(
                     timerState = TimerState.RUNNING,
@@ -251,18 +251,17 @@ class TimerService : Service() {
                 SessionType.LONG_BREAK -> getSettingsUseCase.longBreakDuration.first()
             }
 
-            val durationSeconds = duration
-            val endTime = System.currentTimeMillis() + (durationSeconds * MILLIS_IN_SECOND)
+            val endTime = System.currentTimeMillis() + (duration * MILLIS_IN_SECOND)
             val newState = PersistentTimerState(
                 sessionType = nextType,
                 timerState = TimerState.RUNNING,
-                remainingSeconds = durationSeconds,
-                totalSeconds = durationSeconds,
+                remainingSeconds = duration,
+                totalSeconds = duration,
                 endTime = endTime,
                 completedWorkSessions = nextCompletedSessions
             )
             saveTimerStateUseCase(newState)
-            startTimer(durationSeconds, endTime)
+            startTimer(duration, endTime)
         }
     }
 
@@ -327,11 +326,16 @@ class TimerService : Service() {
             val hours = totalSeconds / SECONDS_IN_HOUR
             val minutes = (totalSeconds % SECONDS_IN_HOUR) / SECONDS_IN_MINUTE
             val seconds = totalSeconds % SECONDS_IN_MINUTE
-            
+
             if (hours > 0) {
                 REMAINING_TIME_FORMAT_WITH_HOURS.format(hours, minutes, seconds)
             } else {
-                getString(R.string.remaining_time_format, minutes, seconds)
+                resources.getQuantityString(
+                    R.plurals.remaining_time_format,
+                    minutes + seconds,
+                    minutes,
+                    seconds
+                )
             }
         }
 

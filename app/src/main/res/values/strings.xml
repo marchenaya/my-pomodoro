@@ -14,8 +14,10 @@
     <string name="short_break_duration">Short Break Duration</string>
     <string name="long_break_duration">Long Break Duration</string>
     <string name="sessions_before_long_break">Sessions before Long Break</string>
-    <string name="sessions_count_format">%d sessions</string>
-    <string name="min_format">%d min</string>
+    <plurals name="sessions_count_format">
+        <item quantity="one">%d session</item>
+        <item quantity="other">%d sessions</item>
+    </plurals>
     <string name="hours">Hours</string>
     <string name="minutes">Minutes</string>
     <string name="seconds">Seconds</string>
@@ -28,7 +30,9 @@
     <string name="work_complete_msg">Work session complete! Time for a break.</string>
     <string name="short_break_complete_msg">Short break finished! Ready to focus?</string>
     <string name="long_break_complete_msg">Long break finished! Ready to focus?</string>
-    <string name="session_finished_format">%s finished!</string>
     <string name="next_step">Next Step</string>
-    <string name="remaining_time_format">%02d:%02d remaining</string>
+    <plurals name="remaining_time_format">
+        <item quantity="one">%02d:%02d remaining</item>
+        <item quantity="other">%02d:%02d remaining</item>
+    </plurals>
 </resources>
