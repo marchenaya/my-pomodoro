@@ -2,70 +2,57 @@ package com.marchenaya.mypomodoro.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
+import androidx.datastore.dataStore
+import com.marchenaya.mypomodoro.domain.model.Settings
 import com.marchenaya.mypomodoro.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+private val Context.settingsDataStore: DataStore<Settings> by dataStore(
+    fileName = "settings.json",
+    serializer = SettingsSerializer
+)
 
 class SettingsRepositoryImpl(private val context: Context) : SettingsRepository {
 
-    private object PreferencesKeys {
-        val WORK_DURATION_SECONDS = intPreferencesKey("work_duration_seconds")
-        val SHORT_BREAK_DURATION_SECONDS = intPreferencesKey("short_break_duration_seconds")
-        val LONG_BREAK_DURATION_SECONDS = intPreferencesKey("long_break_duration_seconds")
-        val SESSIONS_BEFORE_LONG_BREAK = intPreferencesKey("sessions_before_long_break")
-
-        // Legacy keys for migration
-        val WORK_DURATION_MIN = intPreferencesKey("work_duration")
-        val SHORT_BREAK_DURATION_MIN = intPreferencesKey("short_break_duration")
-        val LONG_BREAK_DURATION_MIN = intPreferencesKey("long_break_duration")
+    override val workDurationFlow: Flow<Int> = context.settingsDataStore.data.map { settings ->
+        settings.workDurationSeconds
     }
 
-    override val workDurationFlow: Flow<Int> = context.dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.WORK_DURATION_SECONDS]
-            ?: (preferences[PreferencesKeys.WORK_DURATION_MIN]?.times(60) ?: (25 * 60))
+    override val shortBreakDurationFlow: Flow<Int> = context.settingsDataStore.data.map { settings ->
+        settings.shortBreakDurationSeconds
     }
 
-    override val shortBreakDurationFlow: Flow<Int> = context.dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.SHORT_BREAK_DURATION_SECONDS]
-            ?: (preferences[PreferencesKeys.SHORT_BREAK_DURATION_MIN]?.times(60) ?: (5 * 60))
+    override val longBreakDurationFlow: Flow<Int> = context.settingsDataStore.data.map { settings ->
+        settings.longBreakDurationSeconds
     }
 
-    override val longBreakDurationFlow: Flow<Int> = context.dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.LONG_BREAK_DURATION_SECONDS]
-            ?: (preferences[PreferencesKeys.LONG_BREAK_DURATION_MIN]?.times(60) ?: (15 * 60))
-    }
-
-    override val sessionsBeforeLongBreakFlow: Flow<Int> = context.dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.SESSIONS_BEFORE_LONG_BREAK] ?: 4
-    }
+    override val sessionsBeforeLongBreakFlow: Flow<Int> =
+        context.settingsDataStore.data.map { settings ->
+            settings.sessionsBeforeLongBreak
+        }
 
     override suspend fun updateWorkDuration(duration: Int) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.WORK_DURATION_SECONDS] = duration
+        context.settingsDataStore.updateData { currentSettings ->
+            currentSettings.copy(workDurationSeconds = duration)
         }
     }
 
     override suspend fun updateShortBreakDuration(duration: Int) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.SHORT_BREAK_DURATION_SECONDS] = duration
+        context.settingsDataStore.updateData { currentSettings ->
+            currentSettings.copy(shortBreakDurationSeconds = duration)
         }
     }
 
     override suspend fun updateLongBreakDuration(duration: Int) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.LONG_BREAK_DURATION_SECONDS] = duration
+        context.settingsDataStore.updateData { currentSettings ->
+            currentSettings.copy(longBreakDurationSeconds = duration)
         }
     }
 
     override suspend fun updateSessionsBeforeLongBreak(count: Int) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.SESSIONS_BEFORE_LONG_BREAK] = count
+        context.settingsDataStore.updateData { currentSettings ->
+            currentSettings.copy(sessionsBeforeLongBreak = count)
         }
     }
 }
