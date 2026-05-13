@@ -22,11 +22,8 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.marchenaya.mypomodoro.R
-import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
-import com.marchenaya.mypomodoro.domain.usecase.SaveSettingsUseCase
 import com.marchenaya.mypomodoro.presentation.feature.settings.SettingsScreen
 import com.marchenaya.mypomodoro.presentation.feature.timer.TimerScreenRoot
-import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -69,12 +66,7 @@ fun NavigationRoot() {
             entry<Route.Settings>(
                 metadata = ListDetailSceneStrategy.detailPane()
             ) {
-                val getSettingsUseCase: GetSettingsUseCase = koinInject()
-                val saveSettingsUseCase: SaveSettingsUseCase = koinInject()
-                SettingsScreen(
-                    getSettingsUseCase = getSettingsUseCase,
-                    saveSettingsUseCase = saveSettingsUseCase
-                )
+                SettingsScreen()
             }
         }
     )

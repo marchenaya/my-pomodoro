@@ -45,6 +45,7 @@ datastorePreferences = "1.1.7"
 material = "1.4.0"
 koin = "4.2.1"
 koin-compiler = "0.6.2"
+mockk = "1.14.9"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -98,6 +99,7 @@ androidx-datastore = { group = "androidx.datastore", name = "datastore", version
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
