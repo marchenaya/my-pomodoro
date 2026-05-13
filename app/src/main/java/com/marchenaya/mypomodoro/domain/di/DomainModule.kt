@@ -4,6 +4,8 @@ import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.GetTimerStateUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveTimerStateUseCase
+import com.marchenaya.mypomodoro.domain.usecase.StartTimerUseCase
+import com.marchenaya.mypomodoro.domain.usecase.StopTimerUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 
@@ -12,4 +14,6 @@ val domainModule = module {
     factoryOf(::SaveSettingsUseCase)
     factoryOf(::GetTimerStateUseCase)
     factoryOf(::SaveTimerStateUseCase)
+    factoryOf(::StartTimerUseCase)
+    factoryOf(::StopTimerUseCase)
 }

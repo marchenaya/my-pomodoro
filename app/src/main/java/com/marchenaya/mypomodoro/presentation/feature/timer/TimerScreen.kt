@@ -40,7 +40,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -56,6 +55,7 @@ import com.marchenaya.mypomodoro.presentation.designsystem.PaddingLarge
 import com.marchenaya.mypomodoro.presentation.designsystem.PaddingMedium
 import com.marchenaya.mypomodoro.presentation.designsystem.ProgressIndicatorSize
 import com.marchenaya.mypomodoro.presentation.designsystem.ProgressIndicatorStrokeWidth
+import com.marchenaya.mypomodoro.presentation.designsystem.TimerTextSize
 import com.marchenaya.mypomodoro.presentation.util.ObserveAsEvents
 import org.koin.androidx.compose.koinViewModel
 
@@ -165,7 +165,7 @@ private fun TimerScreen(
                 Text(
                     text = formatTime(uiState.remainingSeconds),
                     style = MaterialTheme.typography.displayLarge.copy(
-                        fontSize = TIMER_TEXT_SIZE_SP.sp,
+                        fontSize = TimerTextSize,
                         fontWeight = FontWeight.Bold
                     )
                 )
@@ -238,8 +238,6 @@ private fun formatTime(seconds: Int): String {
         TIME_FORMAT_WITHOUT_HOURS.format(m, s)
     }
 }
-
-private const val TIMER_TEXT_SIZE_SP = 64
 
 private const val SECONDS_IN_HOUR = 3600
 private const val SECONDS_IN_MINUTE = 60

@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
@@ -28,9 +28,9 @@ import com.marchenaya.mypomodoro.presentation.feature.timer.TimerScreenRoot
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun NavigationRoot() {
-    val backStack: NavBackStack<NavKey> = rememberNavBackStack(Route.Timer)
+    val backStack: NavBackStack<NavKey> = rememberNavBackStack(Routes.Timer)
 
-    val windowAdaptiveInfo = currentWindowAdaptiveInfo()
+    val windowAdaptiveInfo = currentWindowAdaptiveInfoV2()
     val directive = remember(windowAdaptiveInfo) {
         calculatePaneScaffoldDirective(windowAdaptiveInfo)
             .copy(horizontalPartitionSpacerSize = ZeroDp)
@@ -46,7 +46,7 @@ fun NavigationRoot() {
         ),
         sceneStrategies = listOf(listDetailStrategy),
         entryProvider = entryProvider {
-            entry<Route.Timer>(
+            entry<Routes.Timer>(
                 metadata = ListDetailSceneStrategy.listPane(
                     detailPlaceholder = {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -57,13 +57,13 @@ fun NavigationRoot() {
             ) {
                 TimerScreenRoot(
                     onSettingsClick = {
-                        if (backStack.none { it is Route.Settings }) {
-                            backStack.add(Route.Settings)
+                        if (backStack.none { it is Routes.Settings }) {
+                            backStack.add(Routes.Settings)
                         }
                     }
                 )
             }
-            entry<Route.Settings>(
+            entry<Routes.Settings>(
                 metadata = ListDetailSceneStrategy.detailPane()
             ) {
                 SettingsScreen()

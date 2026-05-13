@@ -7,9 +7,12 @@ import com.marchenaya.mypomodoro.data.repository.SettingsRepositoryImpl
 import com.marchenaya.mypomodoro.data.repository.TimerRepositoryImpl
 import com.marchenaya.mypomodoro.data.serializer.SettingsSerializer
 import com.marchenaya.mypomodoro.data.serializer.TimerStateSerializer
+import com.marchenaya.mypomodoro.data.service.TimerController
+import com.marchenaya.mypomodoro.data.service.TimerControllerImpl
 import com.marchenaya.mypomodoro.domain.dispatcher.DispatcherProvider
 import com.marchenaya.mypomodoro.domain.repository.SettingsRepository
 import com.marchenaya.mypomodoro.domain.repository.TimerRepository
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
@@ -27,8 +30,11 @@ val dataModule = module {
     single<SettingsRepository> {
         SettingsRepositoryImpl(get(named("SettingsDataStore")))
     }
+    single<TimerController> {
+        TimerControllerImpl(androidContext())
+    }
     single<TimerRepository> {
-        TimerRepositoryImpl(get(named("TimerStateDataStore")))
+        TimerRepositoryImpl(get(named("TimerStateDataStore")), get())
     }
 
     singleOf(::DefaultDispatcherProvider).bind<DispatcherProvider>()

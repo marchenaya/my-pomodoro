@@ -1,14 +1,12 @@
 package com.marchenaya.mypomodoro.data.mapper
 
 import com.marchenaya.mypomodoro.data.model.PersistentTimerStateSerializable
-import com.marchenaya.mypomodoro.data.model.SettingsSerializable
 import com.marchenaya.mypomodoro.domain.model.PersistentTimerState
-import com.marchenaya.mypomodoro.domain.model.Settings
 
 fun PersistentTimerState.toPersistentTimerStateSerializable(): PersistentTimerStateSerializable {
     return PersistentTimerStateSerializable(
-        sessionType = sessionType,
-        timerState = timerState,
+        sessionType = sessionType.toSessionTypeSerializable(),
+        timerState = timerState.toTimerStateSerializable(),
         remainingSeconds = remainingSeconds,
         totalSeconds = totalSeconds,
         endTime = endTime,
@@ -18,8 +16,8 @@ fun PersistentTimerState.toPersistentTimerStateSerializable(): PersistentTimerSt
 
 fun PersistentTimerStateSerializable.toPersistentTimerState(): PersistentTimerState {
     return PersistentTimerState(
-        sessionType = sessionType,
-        timerState = timerState,
+        sessionType = sessionType.toSessionType(),
+        timerState = timerState.toTimerState(),
         remainingSeconds = remainingSeconds,
         totalSeconds = totalSeconds,
         endTime = endTime,

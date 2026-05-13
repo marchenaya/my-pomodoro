@@ -3,10 +3,10 @@ package com.marchenaya.mypomodoro.app
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
-sealed interface Route : NavKey {
+sealed interface Routes : NavKey {
     @Serializable
-    data object Timer : Route
+    data object Timer : Routes
 
     @Serializable
-    data object Settings : Route
+    data object Settings : Routes
 }

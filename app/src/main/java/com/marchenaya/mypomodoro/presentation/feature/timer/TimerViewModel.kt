@@ -1,16 +1,15 @@
 package com.marchenaya.mypomodoro.presentation.feature.timer
 
-import android.content.Context
-import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.marchenaya.mypomodoro.data.service.TimerService
 import com.marchenaya.mypomodoro.domain.model.PersistentTimerState
 import com.marchenaya.mypomodoro.domain.model.SessionType
 import com.marchenaya.mypomodoro.domain.model.TimerState
 import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.GetTimerStateUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveTimerStateUseCase
+import com.marchenaya.mypomodoro.domain.usecase.StartTimerUseCase
+import com.marchenaya.mypomodoro.domain.usecase.StopTimerUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -25,10 +24,11 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 class TimerViewModel(
-    private val context: Context,
     private val getSettingsUseCase: GetSettingsUseCase,
-    private val getTimerStateUseCase: GetTimerStateUseCase,
-    private val saveTimerStateUseCase: SaveTimerStateUseCase
+    getTimerStateUseCase: GetTimerStateUseCase,
+    private val saveTimerStateUseCase: SaveTimerStateUseCase,
+    private val startTimerUseCase: StartTimerUseCase,
+    private val stopTimerUseCase: StopTimerUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TimerUiState())
@@ -40,28 +40,26 @@ class TimerViewModel(
     private var countdownJob: Job? = null
 
     init {
-        getTimerStateUseCase()
-            .combine(getSettingsUseCase.workDuration) { state, work -> Pair(state, work) }
-            .combine(getSettingsUseCase.shortBreakDuration) { pair, short -> Triple(pair.first, pair.second, short) }
-            .combine(getSettingsUseCase.longBreakDuration) { triple, long ->
-                val savedState = triple.first
-                val work = triple.second
-                val short = triple.third
-                
-                if (savedState.timerState == TimerState.IDLE) {
-                    val duration = when (savedState.sessionType) {
-                        SessionType.WORK -> work
-                        SessionType.SHORT_BREAK -> short
-                        SessionType.LONG_BREAK -> long
-                    }
-                    savedState.copy(
-                        remainingSeconds = duration,
-                        totalSeconds = duration
-                    )
-                } else {
-                    savedState
+        combine(
+            getTimerStateUseCase(),
+            getSettingsUseCase.workDuration,
+            getSettingsUseCase.shortBreakDuration,
+            getSettingsUseCase.longBreakDuration
+        ) { savedState, work, short, long ->
+            if (savedState.timerState == TimerState.IDLE) {
+                val duration = when (savedState.sessionType) {
+                    SessionType.WORK -> work
+                    SessionType.SHORT_BREAK -> short
+                    SessionType.LONG_BREAK -> long
                 }
+                savedState.copy(
+                    remainingSeconds = duration,
+                    totalSeconds = duration
+                )
+            } else {
+                savedState
             }
+        }
             .onEach { state ->
                 _uiState.value = TimerUiState(
                     sessionType = state.sessionType,
@@ -75,7 +73,7 @@ class TimerViewModel(
                     totalSeconds = state.totalSeconds,
                     completedWorkSessions = state.completedWorkSessions
                 )
-                
+
                 if (state.timerState == TimerState.RUNNING) {
                     startUiCountdown(state.endTime)
                 } else {
@@ -124,17 +122,17 @@ class TimerViewModel(
         val endTime = System.currentTimeMillis() + (newRemaining * MILLIS_IN_SECOND)
 
         saveState(endTime)
-        startService(TimerService.ACTION_START, newRemaining, endTime)
+        startTimerUseCase(newRemaining, endTime)
     }
 
     private fun pauseTimer() {
         _uiState.value = _uiState.value.copy(timerState = TimerState.PAUSED)
         saveState()
-        startService(TimerService.ACTION_STOP)
+        stopTimerUseCase()
     }
 
     private fun resetTimer() {
-        startService(TimerService.ACTION_STOP)
+        stopTimerUseCase()
         viewModelScope.launch {
             val duration = when (_uiState.value.sessionType) {
                 SessionType.WORK -> getSettingsUseCase.workDuration.first()
@@ -151,7 +149,7 @@ class TimerViewModel(
     }
 
     private fun setSessionType(sessionType: SessionType) {
-        startService(TimerService.ACTION_STOP)
+        stopTimerUseCase()
         viewModelScope.launch {
             val duration = when (sessionType) {
                 SessionType.WORK -> getSettingsUseCase.workDuration.first()
@@ -183,35 +181,8 @@ class TimerViewModel(
         }
     }
 
-    private fun startService(
-        action: String,
-        remainingSeconds: Int = INVALID_TIME,
-        endTime: Long = INVALID_TIME_LONG
-    ) {
-        val intent = Intent(context, TimerService::class.java).apply {
-            this.action = action
-            if (remainingSeconds != INVALID_TIME) {
-                putExtra(TimerService.EXTRA_REMAINING_SECONDS, remainingSeconds)
-            }
-            if (endTime != INVALID_TIME_LONG) {
-                putExtra(TimerService.EXTRA_END_TIME, endTime)
-            }
-        }
-        if (action == TimerService.ACTION_START || action == TimerService.ACTION_NEXT_STEP) {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
-            }
-        } else {
-            context.startService(intent)
-        }
-    }
-
     companion object {
         private const val MILLIS_IN_SECOND = 1000L
         private const val UI_TICK_DELAY_MILLIS = 500L
-        private const val INVALID_TIME = -1
-        private const val INVALID_TIME_LONG = -1L
     }
 }
