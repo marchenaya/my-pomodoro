@@ -135,14 +135,12 @@ class TimerService : Service() {
             notificationManager.notify(PROGRESS_NOTIFICATION_ID, createNotification(state))
 
             var lastSavedRemaining = startRemaining
-            while (true) {
-                val currentTime = System.currentTimeMillis()
-                val remaining =
-                    ((endTime - currentTime) / MILLIS_IN_SECOND).toInt().coerceAtLeast(0)
+            var currentState = getTimerStateUseCase().first()
+            var remaining = startRemaining
 
-                // Check state again to see if it was paused/stopped elsewhere
-                val currentState = getTimerStateUseCase().first()
-                if (currentState.timerState != TimerState.RUNNING) break
+            while (remaining > 0 && currentState.timerState == TimerState.RUNNING) {
+                val currentTime = System.currentTimeMillis()
+                remaining = ((endTime - currentTime) / MILLIS_IN_SECOND).toInt().coerceAtLeast(0)
 
                 val updatedState = currentState.copy(remainingSeconds = remaining)
                 notificationManager.notify(
@@ -156,8 +154,10 @@ class TimerService : Service() {
                     lastSavedRemaining = remaining
                 }
 
-                if (remaining <= 0) break
-                delay(TICK_DELAY_MILLIS)
+                if (remaining > 0) {
+                    delay(TICK_DELAY_MILLIS)
+                }
+                currentState = getTimerStateUseCase().first()
             }
 
             // We don't call onTimerFinished here because the AlarmManager will trigger it via ACTION_FINISHED

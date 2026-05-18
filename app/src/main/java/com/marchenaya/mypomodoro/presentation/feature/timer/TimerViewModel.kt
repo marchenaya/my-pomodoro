@@ -82,13 +82,15 @@ class TimerViewModel(
     private fun startUiCountdown(endTime: Long) {
         countdownJob?.cancel()
         countdownJob = viewModelScope.launch {
-            while (true) {
-                val remaining = ((endTime - System.currentTimeMillis()) / MILLIS_IN_SECOND).toInt()
-                    .coerceAtLeast(0)
+            var remaining = ((endTime - System.currentTimeMillis()) / MILLIS_IN_SECOND).toInt()
+                .coerceAtLeast(0)
+            while (remaining > 0) {
                 _uiState.value = _uiState.value.copy(remainingSeconds = remaining)
-                if (remaining <= 0) break
                 delay(UI_TICK_DELAY_MILLIS)
+                remaining = ((endTime - System.currentTimeMillis()) / MILLIS_IN_SECOND).toInt()
+                    .coerceAtLeast(0)
             }
+            _uiState.value = _uiState.value.copy(remainingSeconds = 0)
         }
     }
 
