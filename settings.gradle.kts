@@ -22,6 +22,8 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "My Pomodoro"
-include(":app")
+rootProject.name = "MyPomodoro"
+include(":androidApp")
+include(":desktopApp")
+include(":shared")
  
