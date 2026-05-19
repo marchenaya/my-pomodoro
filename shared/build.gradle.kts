@@ -49,6 +49,14 @@ kotlin {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.lifecycle.viewmodel.compose)
             implementation(libs.lifecycle.runtime.compose)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.compose.navigation3.ui)
+            implementation(libs.compose.navigation3.runtime)
+            implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+            implementation(libs.compose.adaptive)
+            implementation(libs.compose.adaptive.layout)
+            implementation(libs.compose.adaptive.navigation)
+            implementation(libs.compose.adaptive.navigation3)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

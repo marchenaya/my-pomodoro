@@ -3,6 +3,7 @@ package com.marchenaya.mypomodoro.data.dispatcher
 import com.marchenaya.mypomodoro.domain.dispatcher.DispatcherProvider
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 
 class DefaultDispatcherProvider : DispatcherProvider {
     override val io: CoroutineDispatcher
