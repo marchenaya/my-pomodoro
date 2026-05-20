@@ -1,7 +1,6 @@
 package com.marchenaya.mypomodoro.presentation.feature.timer
 
 import android.Manifest
-import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,7 +57,7 @@ import com.marchenaya.mypomodoro.presentation.designsystem.ProgressIndicatorSize
 import com.marchenaya.mypomodoro.presentation.designsystem.ProgressIndicatorStrokeWidth
 import com.marchenaya.mypomodoro.presentation.designsystem.TimerTextSize
 import com.marchenaya.mypomodoro.presentation.util.ObserveAsEvents
-import org.koin.androidx.compose.koinViewModel
+import com.marchenaya.mypomodoro.presentation.util.koinViewModel
 
 @Composable
 fun TimerScreenRoot(
@@ -85,7 +84,7 @@ private fun TimerScreen(
     uiState: TimerUiState,
     onAction: (TimerAction) -> Unit
 ) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    if (false) { // TODO: Implement multiplatform permissions if needed
         val notificationPermissionState = rememberPermissionState(
             Manifest.permission.POST_NOTIFICATIONS
         )

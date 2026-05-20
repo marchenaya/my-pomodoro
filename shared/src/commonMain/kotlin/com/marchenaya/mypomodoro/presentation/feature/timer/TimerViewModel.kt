@@ -2,6 +2,7 @@ package com.marchenaya.mypomodoro.presentation.feature.timer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marchenaya.mypomodoro.data.platform.currentTimeMillis
 import com.marchenaya.mypomodoro.domain.model.PersistentTimerState
 import com.marchenaya.mypomodoro.domain.model.SessionType
 import com.marchenaya.mypomodoro.domain.model.TimerState
@@ -61,7 +62,7 @@ class TimerViewModel(
                     sessionType = state.sessionType,
                     timerState = state.timerState,
                     remainingSeconds = if (state.timerState == TimerState.RUNNING) {
-                        ((state.endTime - System.currentTimeMillis()) / MILLIS_IN_SECOND).toInt()
+                        ((state.endTime - currentTimeMillis()) / MILLIS_IN_SECOND).toInt()
                             .coerceAtLeast(0)
                     } else {
                         processedRemaining
@@ -82,12 +83,12 @@ class TimerViewModel(
     private fun startUiCountdown(endTime: Long) {
         countdownJob?.cancel()
         countdownJob = viewModelScope.launch {
-            var remaining = ((endTime - System.currentTimeMillis()) / MILLIS_IN_SECOND).toInt()
+            var remaining = ((endTime - currentTimeMillis()) / MILLIS_IN_SECOND).toInt()
                 .coerceAtLeast(0)
             while (remaining > 0) {
                 _uiState.value = _uiState.value.copy(remainingSeconds = remaining)
                 delay(UI_TICK_DELAY_MILLIS)
-                remaining = ((endTime - System.currentTimeMillis()) / MILLIS_IN_SECOND).toInt()
+                remaining = ((endTime - currentTimeMillis()) / MILLIS_IN_SECOND).toInt()
                     .coerceAtLeast(0)
             }
             _uiState.value = _uiState.value.copy(remainingSeconds = 0)
@@ -117,7 +118,7 @@ class TimerViewModel(
             timerState = TimerState.RUNNING,
             remainingSeconds = newRemaining
         )
-        val endTime = System.currentTimeMillis() + (newRemaining * MILLIS_IN_SECOND)
+        val endTime = currentTimeMillis() + (newRemaining * MILLIS_IN_SECOND)
 
         saveState(endTime)
         startTimerUseCase(newRemaining, endTime)

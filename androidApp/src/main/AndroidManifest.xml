@@ -30,7 +30,7 @@
         </activity>
 
         <service
-            android:name=".data.service.TimerService"
+            android:name="com.marchenaya.mypomodoro.data.service.TimerService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="specialUse">
@@ -40,7 +40,7 @@
         </service>
 
         <receiver
-            android:name=".data.service.TimerReceiver"
+            android:name="com.marchenaya.mypomodoro.data.service.TimerReceiver"
             android:enabled="true"
             android:exported="false" />
     </application>
