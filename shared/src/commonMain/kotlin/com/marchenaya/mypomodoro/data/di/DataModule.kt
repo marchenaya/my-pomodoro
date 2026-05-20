@@ -21,6 +21,8 @@ private const val SETTINGS_DATA_STORE = "SettingsDataStore"
 private const val TIMER_STATE_DATA_STORE = "TimerStateDataStore"
 
 val dataModule = module {
+    includes(platformDataModule)
+
     singleOf(::SettingsDataStore)
     singleOf(::SettingsSerializer)
     singleOf(::TimerStateDataStore)

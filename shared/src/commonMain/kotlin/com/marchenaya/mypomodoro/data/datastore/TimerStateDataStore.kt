@@ -1,22 +1,25 @@
 package com.marchenaya.mypomodoro.data.datastore
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
-import androidx.datastore.dataStoreFile
+import androidx.datastore.core.okio.OkioStorage
 import com.marchenaya.mypomodoro.data.serializer.TimerStateSerializer
 import com.marchenaya.mypomodoro.domain.model.PersistentTimerState
+import okio.FileSystem
+import okio.SYSTEM
 
 class TimerStateDataStore(
-    private val context: Context,
+    private val pathProvider: DataStorePathProvider,
     private val timerStateSerializer: TimerStateSerializer
 ) {
 
     fun create(): DataStore<PersistentTimerState> {
         return DataStoreFactory.create(
-            serializer = timerStateSerializer,
-            produceFile = {
-                context.dataStoreFile(TIMER_STATE_JSON)
+            storage = OkioStorage(
+                fileSystem = FileSystem.SYSTEM,
+                serializer = timerStateSerializer,
+            ) {
+                pathProvider.providePath(TIMER_STATE_JSON)
             }
         )
     }

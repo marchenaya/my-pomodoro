@@ -1,6 +1,6 @@
 package com.marchenaya.mypomodoro.data.serializer
 
-import androidx.datastore.core.Serializer
+import androidx.datastore.core.okio.OkioSerializer
 import com.marchenaya.mypomodoro.data.mapper.toSettings
 import com.marchenaya.mypomodoro.data.mapper.toSettingsSerializable
 import com.marchenaya.mypomodoro.data.model.SettingsSerializable
@@ -9,18 +9,18 @@ import com.marchenaya.mypomodoro.domain.model.Settings
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import java.io.InputStream
-import java.io.OutputStream
+import okio.BufferedSink
+import okio.BufferedSource
 
 class SettingsSerializer(
     private val dispatcherProvider: DispatcherProvider
-) : Serializer<Settings> {
+) : OkioSerializer<Settings> {
     override val defaultValue: Settings = Settings()
 
-    override suspend fun readFrom(input: InputStream): Settings {
+    override suspend fun readFrom(source: BufferedSource): Settings {
         return try {
             Json.decodeFromString<SettingsSerializable>(
-                input.readBytes().decodeToString()
+                source.readUtf8()
             ).toSettings()
         } catch (e: SerializationException) {
             e.printStackTrace()
@@ -28,12 +28,12 @@ class SettingsSerializer(
         }
     }
 
-    override suspend fun writeTo(t: Settings, output: OutputStream) {
+    override suspend fun writeTo(t: Settings, sink: BufferedSink) {
         withContext(dispatcherProvider.io) {
-            output.write(
+            sink.writeUtf8(
                 Json.encodeToString<SettingsSerializable>(
                     t.toSettingsSerializable()
-                ).encodeToByteArray()
+                )
             )
         }
     }

@@ -1,22 +1,25 @@
 package com.marchenaya.mypomodoro.data.datastore
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
-import androidx.datastore.dataStoreFile
+import androidx.datastore.core.okio.OkioStorage
 import com.marchenaya.mypomodoro.data.serializer.SettingsSerializer
 import com.marchenaya.mypomodoro.domain.model.Settings
+import okio.FileSystem
+import okio.SYSTEM
 
 class SettingsDataStore(
-    private val context: Context,
+    private val pathProvider: DataStorePathProvider,
     private val settingsSerializer: SettingsSerializer
 ) {
 
     fun create(): DataStore<Settings> {
         return DataStoreFactory.create(
-            serializer = settingsSerializer,
-            produceFile = {
-                context.dataStoreFile(SETTINGS_JSON)
+            storage = OkioStorage(
+                fileSystem = FileSystem.SYSTEM,
+                serializer = settingsSerializer,
+            ) {
+                pathProvider.providePath(SETTINGS_JSON)
             }
         )
     }

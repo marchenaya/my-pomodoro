@@ -1,6 +1,6 @@
 package com.marchenaya.mypomodoro.data.serializer
 
-import androidx.datastore.core.Serializer
+import androidx.datastore.core.okio.OkioSerializer
 import com.marchenaya.mypomodoro.data.mapper.toPersistentTimerState
 import com.marchenaya.mypomodoro.data.mapper.toPersistentTimerStateSerializable
 import com.marchenaya.mypomodoro.data.model.PersistentTimerStateSerializable
@@ -12,12 +12,12 @@ import com.marchenaya.mypomodoro.domain.model.TimerState
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import java.io.InputStream
-import java.io.OutputStream
+import okio.BufferedSink
+import okio.BufferedSource
 
 class TimerStateSerializer(
     private val dispatcherProvider: DispatcherProvider
-) : Serializer<PersistentTimerState> {
+) : OkioSerializer<PersistentTimerState> {
     override val defaultValue: PersistentTimerState = PersistentTimerState(
         sessionType = SessionType.WORK,
         timerState = TimerState.IDLE,
@@ -27,10 +27,10 @@ class TimerStateSerializer(
         completedWorkSessions = DEFAULT_COMPLETED_SESSIONS
     )
 
-    override suspend fun readFrom(input: InputStream): PersistentTimerState {
+    override suspend fun readFrom(source: BufferedSource): PersistentTimerState {
         return try {
             Json.decodeFromString<PersistentTimerStateSerializable>(
-                input.readBytes().decodeToString()
+                source.readUtf8()
             ).toPersistentTimerState()
         } catch (e: SerializationException) {
             e.printStackTrace()
@@ -38,12 +38,12 @@ class TimerStateSerializer(
         }
     }
 
-    override suspend fun writeTo(t: PersistentTimerState, output: OutputStream) {
+    override suspend fun writeTo(t: PersistentTimerState, sink: BufferedSink) {
         withContext(dispatcherProvider.io) {
-            output.write(
+            sink.writeUtf8(
                 Json.encodeToString<PersistentTimerStateSerializable>(
                     t.toPersistentTimerStateSerializable()
-                ).encodeToByteArray()
+                )
             )
         }
     }

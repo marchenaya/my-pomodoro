@@ -42,7 +42,8 @@ loggingInterceptor = "5.3.2"
 okhttp = "5.3.2"
 moshiKotlin = "1.15.2"
 moshiKotlinCodegen = "1.15.2"
-datastorePreferences = "1.2.1"
+datastorePreferences = "1.1.1"
+okio = "3.9.1"
 material = "1.14.0"
 koin = "4.2.1"
 koinCompiler = "0.6.2"
@@ -100,8 +101,12 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 moshi-kotlin = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshiKotlin" }
 moshi-kotlin-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshiKotlinCodegen" }
 androidx-datastore = { group = "androidx.datastore", name = "datastore", version.ref = "datastorePreferences" }
+androidx-datastore-okio = { group = "androidx.datastore", name = "datastore-core-okio", version.ref = "datastorePreferences" }
+okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
+koin-compose = { group = "io.insert-koin", name = "koin-compose", version.ref = "koin" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
