@@ -9,11 +9,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.marchenaya.mypomodoro.R
 import com.marchenaya.mypomodoro.presentation.designsystem.MyPomodoroTheme
 import com.marchenaya.mypomodoro.presentation.designsystem.PaddingSmall
+import mypomodoro.shared.generated.resources.Res
+import mypomodoro.shared.generated.resources.hours
+import mypomodoro.shared.generated.resources.minutes
+import mypomodoro.shared.generated.resources.seconds
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun TimeDurationInput(
@@ -43,7 +46,7 @@ fun TimeDurationInput(
                     updateDuration(it, minutes, seconds)
                 }
             },
-            label = stringResource(R.string.hours),
+            label = stringResource(Res.string.hours),
             modifier = Modifier.weight(1f)
         )
         TimeUnitField(
@@ -54,7 +57,7 @@ fun TimeDurationInput(
                     updateDuration(hours, it, seconds)
                 }
             },
-            label = stringResource(R.string.minutes),
+            label = stringResource(Res.string.minutes),
             modifier = Modifier.weight(1f)
         )
         TimeUnitField(
@@ -65,7 +68,7 @@ fun TimeDurationInput(
                     updateDuration(hours, minutes, it)
                 }
             },
-            label = stringResource(R.string.seconds),
+            label = stringResource(Res.string.seconds),
             modifier = Modifier.weight(1f)
         )
     }

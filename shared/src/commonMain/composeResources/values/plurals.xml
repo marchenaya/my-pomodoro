@@ -4,4 +4,8 @@
         <item quantity="one">%d:%02d remaining</item>
         <item quantity="other">%d:%02d remaining</item>
     </plurals>
+    <plurals name="sessions_count_format">
+        <item quantity="one">%d session</item>
+        <item quantity="other">%d sessions</item>
+    </plurals>
 </resources>

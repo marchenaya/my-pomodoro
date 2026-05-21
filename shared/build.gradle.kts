@@ -64,8 +64,9 @@ kotlin {
             implementation(libs.okio)
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
-            implementation(libs.androidx.compose.material.icons.core)
-            implementation(libs.androidx.compose.material.icons.extended)
+            implementation(libs.koin.compose.viewmodel)
+            implementation(libs.compose.material.icons.core)
+            implementation(libs.compose.material.icons.extended)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
