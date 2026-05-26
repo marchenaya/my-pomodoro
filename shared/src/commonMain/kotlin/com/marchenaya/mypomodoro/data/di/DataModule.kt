@@ -11,6 +11,9 @@ import com.marchenaya.mypomodoro.data.service.CommonTimerManager
 import com.marchenaya.mypomodoro.domain.dispatcher.DispatcherProvider
 import com.marchenaya.mypomodoro.domain.repository.SettingsRepository
 import com.marchenaya.mypomodoro.domain.repository.TimerRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
@@ -30,7 +33,8 @@ val dataModule = module {
     single(named(SETTINGS_DATA_STORE)) { get<SettingsDataStore>().create() }
     single(named(TIMER_STATE_DATA_STORE)) { get<TimerStateDataStore>().create() }
 
-    singleOf(::CommonTimerManager)
+    single(named("AppScope")) { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
+    single { CommonTimerManager(get(), get(), get(named("AppScope"))) }
 
     single<SettingsRepository> {
         SettingsRepositoryImpl(get(named(SETTINGS_DATA_STORE)))

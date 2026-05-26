@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <plurals name="remaining_time_format">
-        <item quantity="one">%d:%02d remaining</item>
-        <item quantity="other">%d:%02d remaining</item>
+    <plurals name="remaining_time_seconds_format">
+        <item quantity="one">%1$d sec remaining</item>
+        <item quantity="other">%1$d sec remaining</item>
+    </plurals>
+    <plurals name="remaining_time_minutes_format">
+        <item quantity="one">%1$d min %2$d sec remaining</item>
+        <item quantity="other">%1$d min %2$d sec remaining</item>
+    </plurals>
+    <plurals name="remaining_time_hours_format">
+        <item quantity="one">%1$d h %2$d min %3$d sec remaining</item>
+        <item quantity="other">%1$d h %2$d min %3$d sec remaining</item>
     </plurals>
     <plurals name="sessions_count_format">
-        <item quantity="one">%d session</item>
-        <item quantity="other">%d sessions</item>
+        <item quantity="one">%1$d session</item>
+        <item quantity="other">%1$d sessions</item>
     </plurals>
 </resources>

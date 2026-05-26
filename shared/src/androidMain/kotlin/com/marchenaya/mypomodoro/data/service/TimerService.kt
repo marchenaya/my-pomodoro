@@ -29,7 +29,9 @@ import mypomodoro.shared.generated.resources.app_name
 import mypomodoro.shared.generated.resources.long_break
 import mypomodoro.shared.generated.resources.long_break_complete_msg
 import mypomodoro.shared.generated.resources.next_step
-import mypomodoro.shared.generated.resources.remaining_time_format
+import mypomodoro.shared.generated.resources.remaining_time_hours_format
+import mypomodoro.shared.generated.resources.remaining_time_minutes_format
+import mypomodoro.shared.generated.resources.remaining_time_seconds_format
 import mypomodoro.shared.generated.resources.short_break
 import mypomodoro.shared.generated.resources.short_break_complete_msg
 import mypomodoro.shared.generated.resources.timer
@@ -317,15 +319,33 @@ class TimerService : Service() {
             val minutes = (totalSeconds % SECONDS_IN_HOUR) / SECONDS_IN_MINUTE
             val seconds = totalSeconds % SECONDS_IN_MINUTE
 
-            if (hours > 0) {
-                REMAINING_TIME_FORMAT_WITH_HOURS.format(hours, minutes, seconds)
-            } else {
-                getPluralString(
-                    Res.plurals.remaining_time_format,
-                    minutes,
-                    minutes,
-                    seconds
-                )
+            when {
+                hours > 0 -> {
+                    getPluralString(
+                        Res.plurals.remaining_time_hours_format,
+                        hours,
+                        hours,
+                        minutes,
+                        seconds
+                    )
+                }
+
+                minutes > 0 -> {
+                    getPluralString(
+                        Res.plurals.remaining_time_minutes_format,
+                        minutes,
+                        minutes,
+                        seconds
+                    )
+                }
+
+                else -> {
+                    getPluralString(
+                        Res.plurals.remaining_time_seconds_format,
+                        seconds,
+                        seconds
+                    )
+                }
             }
         }
 
@@ -397,9 +417,6 @@ class TimerService : Service() {
         private const val MILLIS_IN_SECOND = 1000L
         private const val SECONDS_IN_MINUTE = 60
         private const val SECONDS_IN_HOUR = 3600
-
-        private const val REMAINING_TIME_FORMAT_WITH_HOURS = "%02d:%02d:%02d remaining"
-
         private const val MAIN_ACTIVITY_REQUEST_CODE = 0
         private const val NEXT_STEP_REQUEST_CODE = 1
         private const val ALARM_REQUEST_CODE = 0
