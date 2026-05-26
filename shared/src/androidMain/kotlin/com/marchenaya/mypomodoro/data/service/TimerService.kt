@@ -88,6 +88,9 @@ class TimerService : Service() {
             }
 
             ACTION_FINISHED -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    showInitialForegroundNotification()
+                }
                 serviceScope.launch {
                     onTimerFinished()
                 }
@@ -359,6 +362,10 @@ class TimerService : Service() {
             .setCategory(if (isFinished) NotificationCompat.CATEGORY_ALARM else NotificationCompat.CATEGORY_PROGRESS)
             .setAutoCancel(isFinished)
             .setOnlyAlertOnce(!isFinished)
+
+        if (isFinished) {
+            builder.setDefaults(NotificationCompat.DEFAULT_ALL)
+        }
 
         builder.addAction(
             android.R.drawable.ic_media_next,

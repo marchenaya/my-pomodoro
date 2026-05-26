@@ -64,13 +64,13 @@ class CommonTimerManager(
             if (remaining <= 0) {
                 val finalState = getTimerStateUseCase().first()
                 if (finalState.timerState == TimerState.RUNNING) {
+                    onFinished()
                     saveTimerStateUseCase(
                         finalState.copy(
                             timerState = TimerState.IDLE,
                             remainingSeconds = 0
                         )
                     )
-                    onFinished()
                 }
             }
         }
