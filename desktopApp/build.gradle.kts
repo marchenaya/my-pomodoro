@@ -13,6 +13,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.swing)
 
     implementation(libs.compose.ui.tooling.preview)
+
+    implementation(libs.koin.core)
+    implementation(libs.koin.compose)
+    implementation(libs.koin.compose.viewmodel)
 }
 
 compose.desktop {
