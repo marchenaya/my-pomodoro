@@ -57,7 +57,7 @@ jobs:
       - name: Compress App Bundle for Emulator
         run: |
           cd buildDerivedData/Build/Products/Debug-iphonesimulator
-          zip -r ../../../../iosSimulatorApp.zip iosApp.app
+          zip -r ../../../../iosSimulatorApp.zip *.app
 
       - name: Upload Artifact to GitHub
         uses: actions/upload-artifact@v4
