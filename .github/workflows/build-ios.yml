@@ -23,6 +23,10 @@ jobs:
       - name: Setup Gradle Cache
         uses: gradle/actions/setup-gradle@v4
 
+      # --- FIX: Grant execute permission to the Gradle wrapper ---
+      - name: Make Gradle Wrapper Executable
+        run: chmod +x ./gradlew
+
       # --- UNCOMMENT BELOW IF YOUR KMP APP USES COCOAPODS ---
       # - name: Install CocoaPods
       #   run: |
