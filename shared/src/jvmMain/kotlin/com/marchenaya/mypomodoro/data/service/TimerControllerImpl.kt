@@ -3,6 +3,7 @@ package com.marchenaya.mypomodoro.data.service
 import com.marchenaya.mypomodoro.domain.model.SessionType
 import com.marchenaya.mypomodoro.domain.repository.TimerController
 import com.marchenaya.mypomodoro.domain.usecase.GetTimerStateUseCase
+import com.marchenaya.mypomodoro.presentation.util.DesktopNotificationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -12,12 +13,15 @@ import mypomodoro.shared.generated.resources.app_name
 import mypomodoro.shared.generated.resources.long_break_complete_msg
 import mypomodoro.shared.generated.resources.short_break_complete_msg
 import mypomodoro.shared.generated.resources.work_complete_msg
+import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.getString
 import java.awt.Image
 import java.awt.SystemTray
 import java.awt.Toolkit
 import java.awt.TrayIcon
+import javax.imageio.ImageIO
 
+@OptIn(InternalResourceApi::class)
 class TimerControllerImpl(
     private val commonTimerManager: CommonTimerManager,
     private val getTimerStateUseCase: GetTimerStateUseCase,
@@ -51,9 +55,25 @@ class TimerControllerImpl(
                 SessionType.LONG_BREAK -> getString(Res.string.long_break_complete_msg)
             }
 
+            // Show Custom Compose Notification
+            DesktopNotificationManager.show(message)
+
+            // Also show Tray notification (native) with icon
             val tray = SystemTray.getSystemTray()
-            val image: Image = Toolkit.getDefaultToolkit().createImage("") // Empty image as icon
-            val trayIcon = TrayIcon(image, title)
+            val image: Image? = try {
+                // Try to load the icon from resources using the standard path for Compose Multiplatform
+                val iconStream =
+                    javaClass.classLoader.getResourceAsStream("composeResources/mypomodoro.shared.generated.resources/drawable/ic_launcher.png")
+                if (iconStream != null) {
+                    ImageIO.read(iconStream)
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                null
+            }
+
+            val trayIcon = TrayIcon(image ?: Toolkit.getDefaultToolkit().createImage(""), title)
             trayIcon.isImageAutoSize = true
 
             try {

@@ -2,6 +2,7 @@ package com.marchenaya.mypomodoro.presentation.feature.timer
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -36,6 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.marchenaya.mypomodoro.domain.model.SessionType
 import com.marchenaya.mypomodoro.domain.model.TimerState
 import com.marchenaya.mypomodoro.presentation.designsystem.ButtonSizeMedium
@@ -92,41 +97,59 @@ private fun TimerScreen(
             TimerTopBar(onSettingsClick = { onAction(TimerAction.OnSettingsClick) })
         }
     ) { innerPadding ->
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            contentAlignment = Alignment.Center
         ) {
-            SessionTypeSelector(
-                selectedSessionType = uiState.sessionType,
-                onSessionTypeSelected = { onAction(TimerAction.SetSessionType(it)) }
-            )
+            val isCompactWidth = maxWidth < 400.dp
+            val isCompactHeight = maxHeight < 500.dp
 
-            Spacer(modifier = Modifier.height(PaddingHuge))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Spacer(modifier = Modifier.height(if (isCompactHeight) PaddingMedium else PaddingHuge))
 
-            TimerProgressIndicator(
-                remainingSeconds = uiState.remainingSeconds,
-                totalSeconds = uiState.totalSeconds,
-                sessionType = uiState.sessionType
-            )
+                SessionTypeSelector(
+                    selectedSessionType = uiState.sessionType,
+                    onSessionTypeSelected = { onAction(TimerAction.SetSessionType(it)) },
+                    isCompact = isCompactWidth
+                )
 
-            Spacer(modifier = Modifier.height(PaddingLarge))
+                Spacer(modifier = Modifier.height(if (isCompactHeight) PaddingLarge else PaddingHuge))
 
-            CompletedSessionsText(
-                sessionType = uiState.sessionType,
-                completedWorkSessions = uiState.completedWorkSessions
-            )
+                TimerProgressIndicator(
+                    remainingSeconds = uiState.remainingSeconds,
+                    totalSeconds = uiState.totalSeconds,
+                    sessionType = uiState.sessionType,
+                    size = if (isCompactWidth || isCompactHeight) 220.dp else ProgressIndicatorSize
+                )
 
-            Spacer(modifier = Modifier.height(PaddingLarge))
+                if (!isCompactHeight || this@BoxWithConstraints.maxHeight > 400.dp) {
+                    Spacer(modifier = Modifier.height(PaddingLarge))
 
-            TimerControls(
-                timerState = uiState.timerState,
-                onStartClick = { onAction(TimerAction.StartTimer) },
-                onPauseClick = { onAction(TimerAction.PauseTimer) },
-                onResetClick = { onAction(TimerAction.ResetTimer) }
-            )
+                    CompletedSessionsText(
+                        sessionType = uiState.sessionType,
+                        completedWorkSessions = uiState.completedWorkSessions
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(PaddingLarge))
+
+                TimerControls(
+                    timerState = uiState.timerState,
+                    onStartClick = { onAction(TimerAction.StartTimer) },
+                    onPauseClick = { onAction(TimerAction.PauseTimer) },
+                    onResetClick = { onAction(TimerAction.ResetTimer) }
+                )
+
+                Spacer(modifier = Modifier.height(if (isCompactHeight) PaddingMedium else PaddingHuge))
+            }
         }
     }
 }
@@ -156,7 +179,8 @@ private fun TimerTopBar(
 private fun SessionTypeSelector(
     selectedSessionType: SessionType,
     onSessionTypeSelected: (SessionType) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isCompact: Boolean = false
 ) {
     SingleChoiceSegmentedButtonRow(
         modifier = modifier
@@ -173,11 +197,13 @@ private fun SessionTypeSelector(
                 selected = selectedSessionType == sessionType
             ) {
                 Text(
-                    when (sessionType) {
+                    text = when (sessionType) {
                         SessionType.WORK -> stringResource(Res.string.work)
                         SessionType.SHORT_BREAK -> stringResource(Res.string.short_break)
                         SessionType.LONG_BREAK -> stringResource(Res.string.long_break)
-                    }
+                    },
+                    style = if (isCompact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodyLarge,
+                    maxLines = 1
                 )
             }
         }
@@ -189,7 +215,8 @@ private fun TimerProgressIndicator(
     remainingSeconds: Int,
     totalSeconds: Int,
     sessionType: SessionType,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    size: androidx.compose.ui.unit.Dp = ProgressIndicatorSize
 ) {
     Box(contentAlignment = Alignment.Center, modifier = modifier) {
         CircularProgressIndicator(
@@ -198,13 +225,13 @@ private fun TimerProgressIndicator(
                     remainingSeconds.toFloat() / totalSeconds.toFloat()
                 } else 0f
             },
-            modifier = Modifier.size(ProgressIndicatorSize),
+            modifier = Modifier.size(size),
             color = when (sessionType) {
                 SessionType.WORK -> MaterialTheme.colorScheme.primary
                 SessionType.SHORT_BREAK -> MaterialTheme.colorScheme.secondary
                 SessionType.LONG_BREAK -> MaterialTheme.colorScheme.tertiary
             },
-            strokeWidth = ProgressIndicatorStrokeWidth,
+            strokeWidth = if (size < 250.dp) 8.dp else ProgressIndicatorStrokeWidth,
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
             strokeCap = StrokeCap.Round
         )
@@ -212,7 +239,7 @@ private fun TimerProgressIndicator(
         Text(
             text = formatTime(remainingSeconds),
             style = MaterialTheme.typography.displayLarge.copy(
-                fontSize = TimerTextSize,
+                fontSize = if (size < 250.dp) 40.sp else TimerTextSize,
                 fontWeight = FontWeight.Bold
             )
         )

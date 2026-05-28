@@ -1,0 +1,56 @@
+name: Build KMP iOS Simulator App
+
+on:
+  push:
+    branches: [ cmp ] # Triggers on changes to these branches
+  workflow_dispatch: # Lets you trigger the build manually from GitHub
+
+jobs:
+  build-ios:
+    name: Build iOS Simulator App
+    runs-on: macos-latest # Uses Apple's free GitHub cloud runner
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17' # Change to '21' if your KMP project requires a newer Java version
+
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v4
+
+      # --- UNCOMMENT BELOW IF YOUR KMP APP USES COCOAPODS ---
+      # - name: Install CocoaPods
+      #   run: |
+      #     cd iosApp
+      #     pod install
+      # ------------------------------------------------------
+
+      - name: Compile KMP iOS App (Simulator Target)
+        run: |
+          xcodebuild build \
+            -project iosApp/iosApp.xcodeproj \
+            -scheme iosApp \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -derivedDataPath buildDerivedData
+          
+          # Note: If your project uses CocoaPods, comment out the line starting with "-project" 
+          # and uncomment the line below:
+          # -workspace iosApp/iosApp.xcworkspace \
+
+      - name: Compress App Bundle for Emulator
+        run: |
+          cd buildDerivedData/Build/Products/Debug-iphonesimulator
+          zip -r ../../../../iosSimulatorApp.zip iosApp.app
+
+      - name: Upload Artifact to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-build
+          path: iosSimulatorApp.zip
+          retention-days: 7

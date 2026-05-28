@@ -14,9 +14,9 @@ import com.marchenaya.mypomodoro.data.platform.currentTimeMillis
 import com.marchenaya.mypomodoro.domain.model.PersistentTimerState
 import com.marchenaya.mypomodoro.domain.model.SessionType
 import com.marchenaya.mypomodoro.domain.model.TimerState
-import com.marchenaya.mypomodoro.domain.usecase.GetSettingsUseCase
 import com.marchenaya.mypomodoro.domain.usecase.GetTimerStateUseCase
 import com.marchenaya.mypomodoro.domain.usecase.SaveTimerStateUseCase
+import com.marchenaya.mypomodoro.domain.usecase.StartNextStepUseCase
 import com.marchenaya.mypomodoro.shared.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,9 +48,9 @@ import android.app.Notification as AndroidNotification
 
 class TimerService : Service() {
 
-    private val getSettingsUseCase: GetSettingsUseCase by inject()
     private val getTimerStateUseCase: GetTimerStateUseCase by inject()
     private val saveTimerStateUseCase: SaveTimerStateUseCase by inject()
+    private val startNextStepUseCase: StartNextStepUseCase by inject()
     private val commonTimerManager: CommonTimerManager by inject()
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -209,52 +209,7 @@ class TimerService : Service() {
 
     private fun startNextStep() {
         serviceScope.launch {
-            val state = getTimerStateUseCase().first()
-            val currentType = state.sessionType
-            val completedSessions = if (currentType == SessionType.WORK) {
-                state.completedWorkSessions + 1
-            } else {
-                state.completedWorkSessions
-            }
-
-            val sessionsBeforeLongBreak = getSettingsUseCase.sessionsBeforeLongBreak.first()
-
-            val nextType = when (currentType) {
-                SessionType.WORK -> {
-                    if (completedSessions >= sessionsBeforeLongBreak) {
-                        SessionType.LONG_BREAK
-                    } else {
-                        SessionType.SHORT_BREAK
-                    }
-                }
-
-                SessionType.SHORT_BREAK, SessionType.LONG_BREAK -> SessionType.WORK
-            }
-
-            val nextCompletedSessions =
-                if (nextType == SessionType.LONG_BREAK || (currentType == SessionType.LONG_BREAK)) {
-                    0
-                } else {
-                    completedSessions
-                }
-
-            val duration = when (nextType) {
-                SessionType.WORK -> getSettingsUseCase.workDuration.first()
-                SessionType.SHORT_BREAK -> getSettingsUseCase.shortBreakDuration.first()
-                SessionType.LONG_BREAK -> getSettingsUseCase.longBreakDuration.first()
-            }
-
-            val endTime = currentTimeMillis() + (duration * MILLIS_IN_SECOND)
-            val newState = PersistentTimerState(
-                sessionType = nextType,
-                timerState = TimerState.RUNNING,
-                remainingSeconds = duration,
-                totalSeconds = duration,
-                endTime = endTime,
-                completedWorkSessions = nextCompletedSessions
-            )
-            saveTimerStateUseCase(newState)
-            startTimer(duration, endTime)
+            startNextStepUseCase()
         }
     }
 

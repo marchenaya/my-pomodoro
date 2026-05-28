@@ -1,6 +1,8 @@
 package com.marchenaya.mypomodoro.presentation.feature.settings.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
@@ -10,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.marchenaya.mypomodoro.presentation.designsystem.MyPomodoroTheme
 import com.marchenaya.mypomodoro.presentation.designsystem.PaddingSmall
 import mypomodoro.shared.generated.resources.Res
@@ -34,43 +37,88 @@ fun TimeDurationInput(
         onDurationChange(h * SECONDS_IN_HOUR + m * SECONDS_IN_MINUTE + s)
     }
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(PaddingSmall)
-    ) {
-        TimeUnitField(
-            value = hours,
-            onValueChange = {
-                if (it.length <= MAX_LENGTH && it.all { char -> char.isDigit() }) {
-                    hours = it
-                    updateDuration(it, minutes, seconds)
-                }
-            },
-            label = stringResource(Res.string.hours),
-            modifier = Modifier.weight(1f)
-        )
-        TimeUnitField(
-            value = minutes,
-            onValueChange = {
-                if (it.length <= MAX_LENGTH && it.all { char -> char.isDigit() }) {
-                    minutes = it
-                    updateDuration(hours, it, seconds)
-                }
-            },
-            label = stringResource(Res.string.minutes),
-            modifier = Modifier.weight(1f)
-        )
-        TimeUnitField(
-            value = seconds,
-            onValueChange = {
-                if (it.length <= MAX_LENGTH && it.all { char -> char.isDigit() }) {
-                    seconds = it
-                    updateDuration(hours, minutes, it)
-                }
-            },
-            label = stringResource(Res.string.seconds),
-            modifier = Modifier.weight(1f)
-        )
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val isNarrow = maxWidth < 350.dp
+
+        if (isNarrow) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(PaddingSmall)
+            ) {
+                TimeUnitField(
+                    value = hours,
+                    onValueChange = {
+                        if (it.length <= MAX_LENGTH && it.all { char -> char.isDigit() }) {
+                            hours = it
+                            updateDuration(it, minutes, seconds)
+                        }
+                    },
+                    label = stringResource(Res.string.hours),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                TimeUnitField(
+                    value = minutes,
+                    onValueChange = {
+                        if (it.length <= MAX_LENGTH && it.all { char -> char.isDigit() }) {
+                            minutes = it
+                            updateDuration(hours, it, seconds)
+                        }
+                    },
+                    label = stringResource(Res.string.minutes),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                TimeUnitField(
+                    value = seconds,
+                    onValueChange = {
+                        if (it.length <= MAX_LENGTH && it.all { char -> char.isDigit() }) {
+                            seconds = it
+                            updateDuration(hours, minutes, it)
+                        }
+                    },
+                    label = stringResource(Res.string.seconds),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(PaddingSmall)
+            ) {
+                TimeUnitField(
+                    value = hours,
+                    onValueChange = {
+                        if (it.length <= MAX_LENGTH && it.all { char -> char.isDigit() }) {
+                            hours = it
+                            updateDuration(it, minutes, seconds)
+                        }
+                    },
+                    label = stringResource(Res.string.hours),
+                    modifier = Modifier.weight(1f)
+                )
+                TimeUnitField(
+                    value = minutes,
+                    onValueChange = {
+                        if (it.length <= MAX_LENGTH && it.all { char -> char.isDigit() }) {
+                            minutes = it
+                            updateDuration(hours, it, seconds)
+                        }
+                    },
+                    label = stringResource(Res.string.minutes),
+                    modifier = Modifier.weight(1f)
+                )
+                TimeUnitField(
+                    value = seconds,
+                    onValueChange = {
+                        if (it.length <= MAX_LENGTH && it.all { char -> char.isDigit() }) {
+                            seconds = it
+                            updateDuration(hours, minutes, it)
+                        }
+                    },
+                    label = stringResource(Res.string.seconds),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
     }
 }
 
