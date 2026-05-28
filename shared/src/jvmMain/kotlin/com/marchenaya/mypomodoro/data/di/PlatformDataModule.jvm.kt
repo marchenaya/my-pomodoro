@@ -11,5 +11,5 @@ import org.koin.dsl.module
 
 actual val platformDataModule: Module = module {
     singleOf(::JvmDataStorePathProvider) bind DataStorePathProvider::class
-    singleOf(::TimerControllerImpl) bind TimerController::class
+    single { TimerControllerImpl(get(), get()) } bind TimerController::class
 }

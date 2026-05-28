@@ -8,12 +8,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -37,6 +40,7 @@ import com.marchenaya.mypomodoro.presentation.util.koinViewModel
 import mypomodoro.shared.generated.resources.Res
 import mypomodoro.shared.generated.resources.about
 import mypomodoro.shared.generated.resources.about_description
+import mypomodoro.shared.generated.resources.back
 import mypomodoro.shared.generated.resources.long_break_duration
 import mypomodoro.shared.generated.resources.session_durations
 import mypomodoro.shared.generated.resources.sessions_before_long_break
@@ -47,13 +51,15 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SettingsScreen(
+    onBack: (() -> Unit)? = null,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     SettingsContent(
         uiState = uiState,
-        onAction = viewModel::onAction
+        onAction = viewModel::onAction,
+        onBack = onBack
     )
 }
 
@@ -61,11 +67,24 @@ fun SettingsScreen(
 @Composable
 private fun SettingsContent(
     uiState: SettingsUiState,
-    onAction: (SettingsAction) -> Unit
+    onAction: (SettingsAction) -> Unit,
+    onBack: (() -> Unit)? = null,
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(Res.string.settings)) })
+            TopAppBar(
+                title = { Text(stringResource(Res.string.settings)) },
+                navigationIcon = {
+                    if (onBack != null) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(Res.string.back)
+                            )
+                        }
+                    }
+                }
+            )
         }
     ) { innerPadding ->
         Column(

@@ -84,7 +84,13 @@ fun NavigationRoot() {
             entry<Routes.Settings>(
                 metadata = ListDetailSceneStrategy.detailPane()
             ) {
-                SettingsScreen()
+                SettingsScreen(
+                    onBack = if (directive.maxHorizontalPartitions == 1) {
+                        { backStack.removeLastOrNull() }
+                    } else {
+                        null
+                    }
+                )
             }
         }
     )
