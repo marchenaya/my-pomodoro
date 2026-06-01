@@ -1,6 +1,7 @@
 package com.marchenaya.mypomodoro.presentation.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -57,15 +59,21 @@ fun NotificationPopup(
         state = state,
         title = "Notification",
         undecorated = true,
+        transparent = true,
         resizable = false,
         alwaysOnTop = true
     ) {
         MyPomodoroTheme {
             Surface(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                        shape = MaterialTheme.shapes.medium
+                    ),
                 shape = MaterialTheme.shapes.medium,
-                tonalElevation = 8.dp,
-                shadowElevation = 8.dp
+                color = MaterialTheme.colorScheme.surface
             ) {
                 Row(
                     modifier = Modifier.padding(PaddingMedium),
@@ -105,5 +113,17 @@ fun NotificationPopup(
     LaunchedEffect(Unit) {
         delay(10000) // Auto close after 10 seconds
         onClose()
+    }
+}
+
+@Preview
+@Composable
+fun NotificationPopupPreview() {
+    MyPomodoroTheme {
+        NotificationPopup(
+            message = "Work session complete! Time for a break.",
+            onNextStepClick = {},
+            onClose = {}
+        )
     }
 }

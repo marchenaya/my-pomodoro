@@ -9,17 +9,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import mypomodoro.shared.generated.resources.Res
-import mypomodoro.shared.generated.resources.app_name
 import mypomodoro.shared.generated.resources.long_break_complete_msg
 import mypomodoro.shared.generated.resources.short_break_complete_msg
 import mypomodoro.shared.generated.resources.work_complete_msg
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.getString
-import java.awt.Image
-import java.awt.SystemTray
-import java.awt.Toolkit
-import java.awt.TrayIcon
-import javax.imageio.ImageIO
 
 @OptIn(InternalResourceApi::class)
 class TimerControllerImpl(
@@ -45,10 +39,7 @@ class TimerControllerImpl(
     }
 
     private fun showNotification(sessionType: SessionType) {
-        if (!SystemTray.isSupported()) return
-
         scope.launch {
-            val title = getString(Res.string.app_name)
             val message = when (sessionType) {
                 SessionType.WORK -> getString(Res.string.work_complete_msg)
                 SessionType.SHORT_BREAK -> getString(Res.string.short_break_complete_msg)
@@ -57,36 +48,6 @@ class TimerControllerImpl(
 
             // Show Custom Compose Notification
             DesktopNotificationManager.show(message)
-
-            // Also show Tray notification (native) with icon
-            val tray = SystemTray.getSystemTray()
-            val image: Image? = try {
-                // Try to load the icon from resources using the standard path for Compose Multiplatform
-                val iconStream =
-                    javaClass.classLoader.getResourceAsStream("composeResources/mypomodoro.shared.generated.resources/drawable/ic_launcher.png")
-                if (iconStream != null) {
-                    ImageIO.read(iconStream)
-                } else {
-                    null
-                }
-            } catch (e: Exception) {
-                null
-            }
-
-            val trayIcon = TrayIcon(image ?: Toolkit.getDefaultToolkit().createImage(""), title)
-            trayIcon.isImageAutoSize = true
-
-            try {
-                tray.add(trayIcon)
-                trayIcon.displayMessage(title, message, TrayIcon.MessageType.INFO)
-                // Remove the icon after a delay to not clutter the tray
-                launch {
-                    kotlinx.coroutines.delay(5000)
-                    tray.remove(trayIcon)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
         }
     }
 

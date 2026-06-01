@@ -11,6 +11,9 @@ import com.marchenaya.mypomodoro.domain.usecase.StartNextStepUseCase
 import com.marchenaya.mypomodoro.presentation.components.NotificationPopup
 import com.marchenaya.mypomodoro.presentation.util.DesktopNotificationManager
 import kotlinx.coroutines.launch
+import mypomodoro.shared.generated.resources.Res
+import mypomodoro.shared.generated.resources.ic_launcher
+import org.jetbrains.compose.resources.painterResource
 import org.koin.java.KoinJavaComponent.inject
 
 fun main() {
@@ -22,7 +25,8 @@ fun main() {
 
         Window(
             onCloseRequest = ::exitApplication,
-            title = "My Pomodoro"
+            title = "My Pomodoro",
+            icon = painterResource(Res.drawable.ic_launcher)
         ) {
             App()
         }
