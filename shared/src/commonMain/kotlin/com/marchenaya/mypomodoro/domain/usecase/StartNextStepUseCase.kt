@@ -58,7 +58,7 @@ class StartNextStepUseCase(
             completedWorkSessions = nextCompletedSessions
         )
         saveTimerStateUseCase(newState)
-        timerController.start(duration, endTime)
+        timerController.start(duration, endTime, nextType)
     }
 
     private fun currentTimeMillis(): Long =

@@ -121,7 +121,7 @@ class TimerViewModel(
         val endTime = currentTimeMillis() + (newRemaining * MILLIS_IN_SECOND)
 
         saveState(endTime)
-        startTimerUseCase(newRemaining, endTime)
+        startTimerUseCase(newRemaining, endTime, _uiState.value.sessionType)
     }
 
     private fun pauseTimer() {

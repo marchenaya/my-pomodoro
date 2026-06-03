@@ -23,13 +23,12 @@ class TimerControllerImpl(
 
     private val scope = CoroutineScope(Dispatchers.Default)
 
-    override fun start(remainingSeconds: Int, endTime: Long) {
+    override fun start(remainingSeconds: Int, endTime: Long, sessionType: SessionType) {
         commonTimerManager.start(
             initialRemainingSeconds = remainingSeconds,
             endTime = endTime,
             onFinished = {
-                val state = getTimerStateUseCase().first()
-                showNotification(state.sessionType)
+                showNotification(sessionType)
             }
         )
     }

@@ -73,8 +73,10 @@ class TimerService : Service() {
             ACTION_START -> {
                 val remainingSeconds = intent.getIntExtra(EXTRA_REMAINING_SECONDS, INVALID_TIME)
                 val endTime = intent.getLongExtra(EXTRA_END_TIME, INVALID_TIME_LONG)
+                val sessionTypeName = intent.getStringExtra(EXTRA_SESSION_TYPE)
+                val sessionType = sessionTypeName?.let { SessionType.valueOf(it) }
                 showInitialForegroundNotification()
-                startTimer(remainingSeconds, endTime)
+                startTimer(remainingSeconds, endTime, sessionType)
             }
 
             ACTION_STOP -> {
@@ -127,9 +129,15 @@ class TimerService : Service() {
         }
     }
 
-    private fun startTimer(initialRemainingSeconds: Int = -1, initialEndTime: Long = -1L) {
+    private fun startTimer(
+        initialRemainingSeconds: Int = -1,
+        initialEndTime: Long = -1L,
+        sessionType: SessionType? = null
+    ) {
         serviceScope.launch {
             val state = getTimerStateUseCase().first()
+
+            val currentSessionType = sessionType ?: state.sessionType
 
             // Use passed remaining seconds if valid, otherwise use from state
             val startRemaining = if (initialRemainingSeconds != INVALID_TIME) {
@@ -150,14 +158,18 @@ class TimerService : Service() {
                 initialRemainingSeconds = startRemaining,
                 endTime = endTime,
                 onTick = { remaining ->
-                    val currentState = getTimerStateUseCase().first()
                     notificationManager.notify(
                         PROGRESS_NOTIFICATION_ID,
-                        createNotification(currentState.copy(remainingSeconds = remaining))
+                        createNotification(
+                            state.copy(
+                                remainingSeconds = remaining,
+                                sessionType = currentSessionType
+                            )
+                        )
                     )
                 },
                 onFinished = {
-                    onTimerFinished()
+                    onTimerFinished(currentSessionType)
                 }
             )
         }
@@ -213,11 +225,16 @@ class TimerService : Service() {
         }
     }
 
-    private suspend fun onTimerFinished() {
+    private suspend fun onTimerFinished(sessionType: SessionType? = null) {
         val state = getTimerStateUseCase().first()
+        val currentSessionType = sessionType ?: state.sessionType
         // Only proceed if it was actually running and time is up (avoid double triggers)
         if (state.timerState == TimerState.RUNNING || state.remainingSeconds > 0) {
-            val finishedState = state.copy(timerState = TimerState.IDLE, remainingSeconds = 0)
+            val finishedState = state.copy(
+                timerState = TimerState.IDLE,
+                remainingSeconds = 0,
+                sessionType = currentSessionType
+            )
             saveTimerStateUseCase(finishedState)
 
             stopForeground(STOP_FOREGROUND_REMOVE)
@@ -375,6 +392,7 @@ class TimerService : Service() {
 
         const val EXTRA_REMAINING_SECONDS = "EXTRA_REMAINING_SECONDS"
         const val EXTRA_END_TIME = "EXTRA_END_TIME"
+        const val EXTRA_SESSION_TYPE = "EXTRA_SESSION_TYPE"
 
         private const val MILLIS_IN_SECOND = 1000L
         private const val SECONDS_IN_MINUTE = 60
